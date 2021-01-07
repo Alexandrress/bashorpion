@@ -53,7 +53,7 @@ void connectSrv(int sockINET)
 	adrSrv.sin_family = PF_INET;
 	adrSrv.sin_port= htons(PORT_SRV);
 	adrSrv.sin_addr.s_addr = inet_addr(ADDR_SRV); //boucle locale et format réseau
-	memset(&(adrSrv.sin_zero), 8, 0);
+	memset(&(adrSrv.sin_zero), 0, 8); // ---
 	
 	//Demande connexion
 	CHECK(connect(sockINET, (struct sockaddr *)&adrSrv, sizeof(adrSrv)),"Problème connect() ");
@@ -67,7 +67,7 @@ void connectSrv(int sockINET)
 
 void dialClientToSrv(int sockINET, const char * MSG)
 {
-	int lenSockAdr;
+	socklen_t lenSockAdr; // ---
 	requete_t *reqClient;
 	struct sockaddr_in adrSrv, sockAdr;
 	message_t buff;
