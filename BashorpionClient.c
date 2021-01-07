@@ -69,13 +69,13 @@ void dialClientToSrv(int sockINET, const char * MSG)
 {
 	socklen_t lenSockAdr; // ---
 	requete_t *reqClient;
-	struct sockaddr_in adrSrv, sockAdr;
+	struct sockaddr_in sockAdr;
 	message_t buff;
 
 	//Envoi d'un message à un destinataire
 	
 	reqClient = createRequete(100, "SHOW", MSG);
-	sendRequete(sockINET, &adrSrv, reqClient);
+	sendRequete(sockINET, reqClient);
 	
 	//printf("Envoi d'un mesage sur [%s]\n", SOCK_NAME);
 	//CHECK(sendto(sockUNIX, MSG, strlen(MSG) + 1, 0, (struct sockaddr *)&adrSrv, sizeof(adrSrv)), "Problème sendto du client ");

@@ -18,6 +18,7 @@
 #include <errno.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <signal.h>
 
 
 // ************ DEFINES ************
@@ -67,11 +68,11 @@ char * reqToString(const requete_t *req, message_t msg);
 
 
 /**
- * \fn int sendRequete(const int sock, const struct sockaddr_in *adr, const requete_t *req);
+ * \fn int sendRequete(const int sock, const requete_t *req);
  * \brief Permet d'envoyer la requête passé en paramètre à la socket sock.
 */
 
-int sendRequete(const int sock, const struct sockaddr_in *adr, const requete_t *req);
+int sendRequete(const int sock, const requete_t *req);
 
 
 /**

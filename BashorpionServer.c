@@ -21,9 +21,31 @@ void serveur();
 void dialSrvToClient(int socketDialogue, struct sockaddr_in *adresseClient);
 int sessionSrv();
 int acceptClt(int sockINET, struct sockaddr_in *clientAdr);
-
+void deroute(int signal_number);
+void acquitterFinClient(void);
 
 // ************ FONCTIONS ************
+
+/**
+ * \fn void deroute(int signal_number)
+ * \brief Fonction permettant de dérouter les signaux
+*/
+
+void deroute(int signal_number)
+{
+	int status;
+	int pidClient;
+
+	switch (signal_number)
+	{	
+		case SIGCHLD :
+			CHECK(pidClient = wait(&status),"Problème acquittement fils ");
+			printf("Le processus %d s'est terminé.\n",pidClient);
+			break;
+		default :
+			break;
+	}
+}
 
 /**
  * \fn void serveur()
@@ -37,6 +59,7 @@ void serveur()
 	struct sockaddr_in clientAdr;
 	//struct sockaddr_in sockAdr;
 	
+	acquitterFinClient();
 	sockINET = sessionSrv();
 	
 	//Boucle permanente (1 serveur est un daemon)
@@ -145,6 +168,22 @@ void dialSrvToClient(int socketDialogue, struct sockaddr_in *adresseClient)
 	CHECK(shutdown(socketDialogue, SHUT_WR),"-- PB : shutdown()");
 	sleep(1);
 }
+
+
+/**
+ * \fn void acquitterFinClient(void)
+ * \brief Fonction permettant d'acquitter les serveurs fils
+*/
+
+void acquitterFinClient(void)
+{
+	struct sigaction newact;
+	newact.sa_handler = deroute;
+	CHECK(sigemptyset(&newact.sa_mask),"Problème sigemptyset() ");
+	newact.sa_flags = SA_RESTART;
+	CHECK(sigaction(SIGCHLD, &newact, NULL), "Appel de sigaction() pour SIGCHLD");
+}
+
 
 int main()
 {
