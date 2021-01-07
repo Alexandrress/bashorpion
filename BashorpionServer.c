@@ -34,7 +34,8 @@ int acceptClt(int sockINET, struct sockaddr_in *clientAdr);
 void serveur()
 {
 	int sockINET, sd, pid;
-	struct sockaddr_in sockAdr, clientAdr;
+	struct sockaddr_in clientAdr;
+	//struct sockaddr_in sockAdr;
 	
 	sockINET = sessionSrv();
 	
@@ -95,7 +96,7 @@ int sessionSrv()
 	sockAdr.sin_port = htons(PORT_SRV); //Allocation dynamique d'un numéro de port
 	//pas de htons() pour test
 	sockAdr.sin_addr.s_addr = inet_addr(ADDR_SRV); //OU INADDRY_ANY POUR TOUTE INTERFACE DE LA MACHINE
-	memset(&(sockAdr.sin_zero), 8, 0);
+	memset(&(sockAdr.sin_zero), 0, 8);
 	
 	//strcpy(sockAdr.sun_path, SOCK_NAME);
 
