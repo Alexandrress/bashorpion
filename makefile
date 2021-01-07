@@ -6,3 +6,7 @@ all : BashorpionLib.o BashorpionClient.c BashorpionServer.c
 	$(c) $(op)  BashorpionLib.o BashorpionServer.c -o BashorpionServer.exe
 BashorpionLib.o : BashorpionLib.c BashorpionLib.h
 	$(c) $(op) -c BashorpionLib.c	
+	
+clean :
+	rm *.exe
+	rm *.o
