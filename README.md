@@ -1,6 +1,6 @@
 - Compilation :
 
-. Il faut ouvrir un terminal et utiliser la commande "make".
+. Il faut ouvrir un terminal et utiliser la commande "make".<br>
 . On peut aussi enlever tous les fichiers .exe et .o du répertoire en utilisant 
 la commande "make clean".
 
