@@ -7,7 +7,6 @@
  *
 */
 
-
 // ************ BIBLIOTHEQUES ************
 
 #include "BashorpionData.h"
