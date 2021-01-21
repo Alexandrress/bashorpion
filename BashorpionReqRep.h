@@ -24,6 +24,7 @@
 #include <arpa/inet.h>
 #include <signal.h>
 #include <sys/wait.h>
+#include <pthread.h>
 
 
 // ************ DEFINES ************
@@ -72,6 +73,7 @@ typedef struct
 {
 	char username[MAX_CHAR];
 	char ipUser[MAX_CHAR];
+	int portIP;
 } infoUser_t;
 
 

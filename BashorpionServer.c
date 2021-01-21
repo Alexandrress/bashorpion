@@ -25,6 +25,9 @@ void acquitterFinClient(void);
 void nothing(void);
 void fin(void);
 void serveur();
+void * serverFils(void *);
+
+#define CAPACITE_SERVER 10
 
 
 // ******** VARIABLES GLOBALES ********
@@ -101,9 +104,18 @@ void nothing(void)
 
 void serveur()
 {
-	int sd, pid;
+	int sd, /*pid,*/ i;
 	struct sockaddr_in clientAdr;
-	//struct sockaddr_in sockAdr;
+	int overcharged=0; /*Surcharge du server : 0 <=> server disponible
+												1 <=> serveur en capacité max, ne peut plus prendre de clients*/
+	//struct sockaddr_in clientAdr;
+	pthread_t *tab_thread; //tableau de Threads de dialogue
+	//pthread_t threadErr; //Thread de secours utilisé pour informer le client de la surcharge du serveur (capacité max de clients connectés atteinte)
+	
+	printf("Démarrage de l'application serveur\n");
+	
+	//Allocation mémoire pour les threads de dialogue
+	tab_thread = (pthread_t*)malloc(CAPACITE_SERVER*sizeof(pthread_t));
 	
 	acquitterFinClient();
 	sockINET = sessionSrv();
@@ -113,6 +125,30 @@ void serveur()
 	{
 		//Attente de connexion client
 		sd = acceptClt(sockINET, &clientAdr);
+		
+		i=0;
+		while (&tab_thread[i] == NULL){
+			i++;
+			if (i == CAPACITE_SERVER){
+				printf("Serveur surchargé, ne peut plus prendre de demandes de connexion\n");
+				overcharged = 1;
+				break;
+			}
+		}
+		
+		
+		//Création d'un thread de dialogue pour communiquer avec le client
+		if (overcharged == 1) //Envoi de message de surcharge au client
+			/*CHECK(pthread_create());*/ printf("Overcharged\n");
+		else
+			CHECK(pthread_create(&tab_thread[i], NULL, serverFils, (void *) &sd), "PB - pthreadCreate"); //Création d'un thread de server fils
+		/*
+		 * A FINIR !!!!!
+		 * */
+		
+		CHECK(close(sd), "Problème close sock dialogue serveur fils ");
+		
+		/*
 		CHECK(pid = fork(), "Problème fork() ");
 		if (pid == 0)
 		{
@@ -123,15 +159,27 @@ void serveur()
 			CHECK(close(sd), "Problème close sock dialogue serveur fils ");		
 			exit(0);
 		}
-		CHECK(close(sd), "Problème close sock dialogue serveur fils ");	
+		CHECK(close(sd), "Problème close sock dialogue serveur fils ");	*/
 	}
 	//Fermeture du socket
 	CHECK(close(sockINET), "Problème close sock serveur père ");
 }
 
 
+void * serverFils(void *arg){
+	int* sd = (int*)arg;
+	printf("Ouais je suis le serveur fils : %d\n", *sd);
+	
+	//On commence par traiter la requête
+	
+	//On envoie la réponse appropriée
+}
+
+
+
 int main()
 {
+	//Thread principal (main)
 	struct sigaction newact;
 
     newact.sa_handler = deroute;
