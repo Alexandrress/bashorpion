@@ -4,8 +4,8 @@
  de génération de requêtes/réponses et de traitements. Concerne la couche 7 du modèle 
  OSI (Application).
  * \author Alexandre.L & Nicolas.S
- * \version 2.0
- * \date 12 Janvier 2021
+ * \version 3.0
+ * \date 21 Janvier 2021
 */
 
 

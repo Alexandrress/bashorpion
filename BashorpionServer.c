@@ -8,8 +8,8 @@
  * \file BashorpionServer.c
  * \brief Programme permettant de lancer le serveur du projet Bashorpion.
  * \author Alexandre.L & Nicolas.S
- * \version 2.0
- * \date 12 Janvier 2021
+ * \version 3.0
+ * \date 21 Janvier 2021
  *
 */
 

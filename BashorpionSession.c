@@ -3,8 +3,8 @@
  * \brief Fichier "BashorpionSession.c" contenant les fonctions de sessions des
  clients et du serveur. Concerne la couche 5 du modèle OSI (Session).
  * \author Alexandre.L & Nicolas.S
- * \version 2.0
- * \date 12 Janvier 2021
+ * \version 3.0
+ * \date 21 Janvier 2021
  *
 */
 
@@ -66,26 +66,23 @@ int sessionClt()
 
 
 /**
- * \fn void connectSrv(int sockINET)
+ * \fn int connectSrv(int sockINET, char* serverIP)
  * \brief Permet au client de se connecter au serveur.
 */
 
-void connectSrv(int sockINET)
+int connectSrv(int sockINET, char* serverIP)
 {
 	struct sockaddr_in adrSrv;
 
-	//Le client n'a pas besoin d'avoir une adresse donc
-	//pas de préparation ni d'association.
-	//Par contre le client doit fournir l'adresse du
-	//serveur.
-
 	adrSrv.sin_family = PF_INET;
 	adrSrv.sin_port= htons(PORT_SRV);
-	adrSrv.sin_addr.s_addr = inet_addr(ADDR_SRV); //boucle locale et format réseau
+	adrSrv.sin_addr.s_addr = inet_addr(serverIP);
 	memset(&(adrSrv.sin_zero), 0, 8); // ---
 	
 	//Demande connexion
 	CHECK(connect(sockINET, (struct sockaddr *)&adrSrv, sizeof(adrSrv)),"Problème connect() ");
+	
+	return(sockINET);
 }
 
 
@@ -155,12 +152,16 @@ void dialClientToSrv(int sockINET, const char * MSG)
 	message_t buff;
 
 	//Envoi d'un message à un destinataire
+	char code[MAX_CHAR]="";
+	action_t action;
+	message_t msg;
+	short codeShort=0;
 	
-	reqClient = createRequete(100, "SHOW", MSG);
+	sscanf(MSG, "%s %s %s\n", code, action, msg);
+	codeShort = atoi(code);
+	
+	reqClient = createRequete(codeShort, action, msg);
 	sendRequete(sockINET, reqClient);
-	
-	//printf("Envoi d'un mesage sur [%s]\n", SOCK_NAME);
-	//CHECK(sendto(sockUNIX, MSG, strlen(MSG) + 1, 0, (struct sockaddr *)&adrSrv, sizeof(adrSrv)), "Problème sendto du client ");
 
 	lenSockAdr = sizeof(sockAdr);
 	CHECK(getsockname(sockINET, (struct sockaddr *)&sockAdr, &lenSockAdr),"Problème getsockname()");

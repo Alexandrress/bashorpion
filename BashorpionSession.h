@@ -3,8 +3,8 @@
  * \brief Fichier "BashorpionSession.h" contenant les prototypes et structures
 des fonctions de session. Concerne la couche 5 du modèle OSI (Session).
  * \author Alexandre.L & Nicolas.S
- * \version 2.0
- * \date 12 Janvier 2021
+ * \version 3.0
+ * \date 21 Janvier 2021
 */
 
 #ifndef _SESSION_H_
@@ -35,11 +35,11 @@ int sessionClt();
 
 
 /**
- * \fn void connectSrv(int sockINET)
+ * \fn int connectSrv(int sockINET, char* serverIP)
  * \brief Permet au client de se connecter au serveur.
 */
 
-void connectSrv(int sockINET);
+int connectSrv(int sockINET, char* serverIP);
 
 
 /**

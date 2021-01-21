@@ -4,8 +4,8 @@
  de génération de requêtes/réponses et de traitements. Concerne la couche 7 du modèle 
  OSI (Application).
  * \author Alexandre.L & Nicolas.S
- * \version 2.0
- * \date 12 Janvier 2021
+ * \version 3.0
+ * \date 21 Janvier 2021
 */
 
 
@@ -24,6 +24,7 @@
 #include <arpa/inet.h>
 #include <signal.h>
 #include <sys/wait.h>
+#include <pthread.h>
 
 
 // ************ DEFINES ************
@@ -33,9 +34,10 @@
 #define MSG_SRV1		"Ceci est une réponse serveur!"
 #define MSG_SRV2		"Ceci est une autre réponse serveur!"
 #define MAX_CHAR		512 //Constante permettant de spécifier la taille MAX des char*.
-#define PORT_SRV		5120 //doit être > à 1023
+#define PORT_CLT		60001 //doit être > à 1023
+#define PORT_SRV		60002 //doit être > à 1023
 							 //exclure les ports assigned services dans more /etc/services
-#define ADDR_SRV		"127.0.0.1" //Adresse du serveur
+#define ADDR_SRV		"127.0.0.1"
 	
 
 // ************ MACRO - FONCTIONS ************					
@@ -72,6 +74,7 @@ typedef struct
 {
 	char username[MAX_CHAR];
 	char ipUser[MAX_CHAR];
+	int portIP;
 } infoUser_t;
 
 
