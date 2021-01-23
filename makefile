@@ -2,8 +2,8 @@ c=gcc
 op=-Wall -Wextra
 
 all : BashorpionReqRep.o BashorpionSession.o BashorpionData.o BashorpionClient.c BashorpionServer.c
-	$(c) $(op)  BashorpionReqRep.o BashorpionSession.o BashorpionData.o BashorpionClient.c -o BashorpionClient.exe
-	$(c) $(op)  BashorpionReqRep.o BashorpionSession.o BashorpionData.o BashorpionServer.c -o BashorpionServer.exe
+	$(c) $(op)  BashorpionReqRep.o BashorpionSession.o BashorpionData.o BashorpionClient.c -o BashorpionClient.exe -lpthread
+	$(c) $(op)  BashorpionReqRep.o BashorpionSession.o BashorpionData.o BashorpionServer.c -o BashorpionServer.exe -lpthread
 BashorpionReqRep.o : BashorpionReqRep.c BashorpionReqRep.h
 	$(c) $(op) -c BashorpionReqRep.c
 BashorpionSession.o : BashorpionSession.c BashorpionSession.h

@@ -4,8 +4,8 @@
  de génération de requêtes/réponses et de traitements. Concerne la couche 7 du modèle 
  OSI (Application).
  * \author Alexandre.L & Nicolas.S
- * \version 2.0
- * \date 12 Janvier 2021
+ * \version 3.0
+ * \date 21 Janvier 2021
 */
 
 
@@ -24,19 +24,22 @@
 #include <arpa/inet.h>
 #include <signal.h>
 #include <sys/wait.h>
+#include <pthread.h>
 
 
 // ************ DEFINES ************
 
-#define MSG_CLT1		"1 : Ceci est un message client!" 
-#define MSG_CLT2		"2 : Ceci est un second message client!"
-#define MSG_SRV1		"Ceci est une réponse serveur!"
-#define MSG_SRV2		"Ceci est une autre réponse serveur!"
 #define MAX_CHAR		512 //Constante permettant de spécifier la taille MAX des char*.
-#define PORT_SRV		5120 //doit être > à 1023
-							 //exclure les ports assigned services dans more /etc/services
-#define ADDR_SRV		"127.0.0.1" //Adresse du serveur
+#define PORT_CLT		60001 //doit être > à 1023 et exclure les ports assigned services dans more /etc/services
+#define PORT_SRV		60002 //doit être > à 1023 et exclure les ports assigned services dans more /etc/services
+#define ADDR_SRV		"127.0.0.1"
 	
+// ******** VARIABLES GLOBALES ********
+
+int coup;
+int hasAcceptedDuel;
+char opponentName[MAX_CHAR];
+char bufferRevanche[MAX_CHAR]; 
 
 // ************ MACRO - FONCTIONS ************					
 	
@@ -72,6 +75,7 @@ typedef struct
 {
 	char username[MAX_CHAR];
 	char ipUser[MAX_CHAR];
+	int portIP;
 } infoUser_t;
 
 
@@ -117,11 +121,28 @@ requete_t * createRequete(short no, action_t act, const message_t myParams);
 
 
 /**
- * \fn int traiterRequest(const requete_t *req);
- * \brief Permet de traiter la requête passé en paramètre.
+ * \fn reponse_t * createReponse(short no, const message_t resultat);
+ * \brief Permet de créer une nouvelle réponse en spécifiant le code, et le message.
 */
 
-int traiterRequest(const requete_t *req);
+reponse_t * createReponse(short no, const message_t resultat);
+
+
+/**
+ * \fn reponse_t * traiterRequest(const requete_t *req)
+ * \brief Permet de traiter la requête passé en paramètre et crée une réponse.
+*/
+
+reponse_t * traiterRequest(const requete_t *req);
+
+
+/**
+ * \fn char * traiterReponse(const reponse_t *rep)
+ * \brief Permet de traiter la réponse passé en paramètre, renvoie une chaine de caractère pour 
+ * afficher le résultat du traitement.
+*/
+
+char * traiterReponse(const reponse_t *rep);
 
 
 #endif

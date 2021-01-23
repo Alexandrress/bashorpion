@@ -26,6 +26,3 @@ le programme client sur la même machine deux fois, pour tester) <br>
 - Générer la documentation Doxygen : <br>
 
 . Il faut utiliser la commande "doxygen BashorpionServer.c". <br>
-
-BABEDEZBI
-test

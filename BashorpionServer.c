@@ -8,8 +8,8 @@
  * \file BashorpionServer.c
  * \brief Programme permettant de lancer le serveur du projet Bashorpion.
  * \author Alexandre.L & Nicolas.S
- * \version 2.0
- * \date 12 Janvier 2021
+ * \version 3.0
+ * \date 21 Janvier 2021
  *
 */
 
@@ -106,7 +106,7 @@ void serveur()
 	//struct sockaddr_in sockAdr;
 	
 	acquitterFinClient();
-	sockINET = sessionSrv();
+	sockINET = sessionSrv(PORT_SRV, 6);
 	
 	//Boucle permanente (1 serveur est un daemon)
 	while (1)
