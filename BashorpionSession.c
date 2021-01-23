@@ -16,11 +16,11 @@
 // ************ FONCTIONS ************
 
 /**
- * \fn int sessionSrv()
+ * \fn int sessionSrv(int portNumber)
  * \brief Permet de créer une nouvelle session pour un serveur.
 */
 
-int sessionSrv()
+int sessionSrv(int portNumber, int nbDeClients)
 {
 	int sockINET;
 	struct sockaddr_in sockAdr;
@@ -31,19 +31,16 @@ int sessionSrv()
 
 	//Préparation d'un adressage pour une socket INET
 	sockAdr.sin_family = PF_INET;
-	sockAdr.sin_port = htons(PORT_SRV); //Allocation dynamique d'un numéro de port
-	//pas de htons() pour test
-	sockAdr.sin_addr.s_addr = inet_addr(ADDR_SRV); //OU INADDRY_ANY POUR TOUTE INTERFACE DE LA MACHINE
+	sockAdr.sin_port = htons(portNumber);
+	sockAdr.sin_addr.s_addr = htonl(INADDR_ANY);
 	memset(&(sockAdr.sin_zero), 0, 8);
-	
-	//strcpy(sockAdr.sun_path, SOCK_NAME);
 
 	//Association de la socket avec l'adresse
 	//Utilisation à base d'un cast
 	CHECK(bind(sockINET, (struct sockaddr *)&sockAdr, sizeof(sockAdr)), "Problème bind serveur ");
 	
 	//Mise de la socket à l'écoute
-	CHECK(listen(sockINET, 5),"Problème listen() "); //5 est le nb de clients mis en attente
+	CHECK(listen(sockINET, nbDeClients),"Problème listen() "); //5 est le nb de clients mis en attente
 	
 	return(sockINET);
 }
@@ -66,18 +63,18 @@ int sessionClt()
 
 
 /**
- * \fn int connectSrv(int sockINET, char* serverIP)
+ * \fn int connectSrv(int sockINET, char* serverIP, int portNumber)
  * \brief Permet au client de se connecter au serveur.
 */
 
-int connectSrv(int sockINET, char* serverIP)
+int connectSrv(int sockINET, char* serverIP, int portNumber)
 {
 	struct sockaddr_in adrSrv;
 
 	adrSrv.sin_family = PF_INET;
-	adrSrv.sin_port= htons(PORT_SRV);
+	adrSrv.sin_port= htons(portNumber);
 	adrSrv.sin_addr.s_addr = inet_addr(serverIP);
-	memset(&(adrSrv.sin_zero), 0, 8); // ---
+	memset(&(adrSrv.sin_zero), 0, 8);
 	
 	//Demande connexion
 	CHECK(connect(sockINET, (struct sockaddr *)&adrSrv, sizeof(adrSrv)),"Problème connect() ");
@@ -110,46 +107,42 @@ int acceptClt(int sockINET, struct sockaddr_in *clientAdr)
 
 void dialSrvToClient(int socketDialogue, struct sockaddr_in *adresseClient)
 {
-	int req;
 	message_t buff;
 	requete_t * reqClient;
+	reponse_t * repSrv;
 	socklen_t lenClt;
 
 	lenClt = sizeof(adresseClient);
 	//Dialogue avec le client
 	memset(&buff, 0, MAX_CHAR);
-	//lenClt = sizeof(clientAdr);
+
 	printf("Attente de réception d'un message\n");
 	CHECK(recvfrom(socketDialogue, buff, MAX_CHAR, 0, (struct sockaddr *)&adresseClient, &lenClt), "Problème recv serveur ");
-	reqClient = stringToReq(buff);
-	traiterRequest(reqClient); 
-	//printf("\tMessage reçu : \"%s\"\n", buff);
-	//printf("\tpar le canal %s\n\n", clientAdr.sun_path);
-	sscanf(reqClient->params,"%d",&req);
-	if (req==1)
-	{
-		CHECK(send(socketDialogue, MSG_SRV1, strlen(MSG_SRV1) + 1, 0), "Problème send du serveur ");
-	}
-	else
-	{
-		CHECK(send(socketDialogue, MSG_SRV2, strlen(MSG_SRV2) + 1, 0), "Problème send du serveur ");
-	}
+	
+	reqClient = stringToReq(buff); //On transforme le string en requête pour traiter
+	repSrv=traiterRequest(reqClient); //On génére une réponse qu'on renvoit
+	
+	sendReponse(socketDialogue, repSrv);
+	/*
 	CHECK(shutdown(socketDialogue, SHUT_WR),"-- PB : shutdown()");
-	sleep(1);
+	sleep(1);*/
 }
 
 
 /**
- * \fn void dialClientToSrv(int sockINET, const char * MSG)
+ * \fn message_t dialClientToSrv(int sockINET, const char * MSG)
  * \brief Permet au client de dialoguer avec le serveur
 */
 
-void dialClientToSrv(int sockINET, const char * MSG)
+char * dialClientToSrv(int sockINET, const char * MSG)
 {
 	socklen_t lenSockAdr;
 	requete_t *reqClient;
+	reponse_t * repSrv;
 	struct sockaddr_in sockAdr;
-	message_t buff;
+	
+	char *buff = (char *) malloc(sizeof(char) * MAX_CHAR);
+	char *reponse = (char *) malloc(sizeof(char) * MAX_CHAR);
 
 	//Envoi d'un message à un destinataire
 	char code[MAX_CHAR]="";
@@ -167,10 +160,13 @@ void dialClientToSrv(int sockINET, const char * MSG)
 	CHECK(getsockname(sockINET, (struct sockaddr *)&sockAdr, &lenSockAdr),"Problème getsockname()");
 	
 	//Attente d'une réponse
-	memset(&buff, 0, MAX_CHAR);
+	memset(buff, 0, MAX_CHAR);
 	CHECK(recv(sockINET, buff, MAX_CHAR, 0),"Problème recv() ");
 	
-	printf("Réponse serveur : %s\n",buff);
+	repSrv = stringToRep(buff); //On transforme le string en réponse pour traiter
+	reponse = traiterReponse(repSrv); //On génére ce qu'on affiche.
+	
+	return(reponse);
 }
 
 /**
@@ -185,11 +181,27 @@ int sendRequete(const int sock, const requete_t *req)
 	reqToString(req, msg);
 	
 	//Envoi d'un message à un destinataire
-	printf("Envoi d'un mesage INET.\n");
+	printf("Envoi du message INET suivant %s\n",msg);
 	CHECK(send(sock, msg, strlen(msg) + 1, 0), "Problème send du client ");
 	return(0);
 }
 
+/**
+ * \fn int sendReponse(const int sock, const reponse_t *rep)
+ * \brief Permet d'envoyer la réponse passé en paramètre à la socket sock.
+*/
+
+
+int sendReponse(const int sock, const reponse_t *rep)
+{
+	message_t msg;
+	repToString(rep, msg);
+	
+	//Envoi d'un message à un destinataire
+	printf("Envoi du message INET suivant %s\n",msg);
+	CHECK(send(sock, msg, strlen(msg) + 1, 0), "Problème send du client ");
+	return(0);
+}
 
 /**
  * \fn int sendMsg(const int sock, const struct sockaddr_in *adr, const char *msg);
@@ -200,7 +212,7 @@ int sendRequete(const int sock, const requete_t *req)
 int sendMsg(const int sock, const struct sockaddr_in *adr, const char *msg)
 {
 	//Envoi d'un message à un destinataire
-	printf("Envoi d'un mesage INET.\n");
+	printf("Envoi du message INET suivant %s\n",msg);
 	CHECK(sendto(sock, msg, strlen(msg) + 1, 0, (struct sockaddr *)adr, sizeof(*adr)), "Problème sendto du client ");
 	return(0);
 }

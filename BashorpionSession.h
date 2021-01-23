@@ -19,11 +19,11 @@ des fonctions de session. Concerne la couche 5 du modèle OSI (Session).
 // ************ FONCTIONS ************
 
 /**
- * \fn int sessionSrv()
+ * \fn int sessionSrv(int portNumber)
  * \brief Permet de créer une nouvelle session pour un serveur.
 */
 
-int sessionSrv();
+int sessionSrv(int portNumber, int nbDeClients);
 
 
 /**
@@ -35,11 +35,11 @@ int sessionClt();
 
 
 /**
- * \fn int connectSrv(int sockINET, char* serverIP)
+ * \fn int connectSrv(int sockINET, char* serverIP, int portNumber);
  * \brief Permet au client de se connecter au serveur.
 */
 
-int connectSrv(int sockINET, char* serverIP);
+int connectSrv(int sockINET, char* serverIP, int portNumber);
 
 
 /**
@@ -63,7 +63,7 @@ void dialSrvToClient(int socketDialogue, struct sockaddr_in *adresseClient);
  * \brief Permet au client de dialoguer avec le serveur
 */
 
-void dialClientToSrv(int sockINET, const char * MSG);
+char * dialClientToSrv(int sockINET, const char * MSG);
 
 
 /**
@@ -72,6 +72,13 @@ void dialClientToSrv(int sockINET, const char * MSG);
 */
 
 int sendRequete(const int sock, const requete_t *req);
+
+/**
+ * \fn int sendReponse(const int sock, const reponse_t *rep)
+ * \brief Permet d'envoyer la réponse passé en paramètre à la socket sock.
+*/
+
+int sendReponse(const int sock, const reponse_t *rep);
 
 /**
  * \fn int sendMsg(const int sock, const struct sockaddr_in *adr, const char *msg);

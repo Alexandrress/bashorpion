@@ -39,6 +39,8 @@
 							 //exclure les ports assigned services dans more /etc/services
 #define ADDR_SRV		"127.0.0.1"
 	
+int hasAcceptedDuel;
+char opponentName[MAX_CHAR];
 
 // ************ MACRO - FONCTIONS ************					
 	
@@ -118,13 +120,24 @@ typedef struct {
 
 requete_t * createRequete(short no, action_t act, const message_t myParams);
 
+/**
+ * \fn reponse_t * createReponse(short no, const message_t resultat);
+ * \brief Permet de créer une nouvelle réponse en spécifiant le code, et le message.
+*/
+
+reponse_t * createReponse(short no, const message_t resultat);
 
 /**
- * \fn int traiterRequest(const requete_t *req);
+ * \fn reponse_t * traiterRequest(const requete_t *req)
  * \brief Permet de traiter la requête passé en paramètre.
 */
 
-int traiterRequest(const requete_t *req);
+reponse_t * traiterRequest(const requete_t *req);
 
+/**
+ * \fn char * traiterReponse(const reponse_t *rep)
+ * \brief Permet de traiter la réponse passé en paramètre.
+*/
+char * traiterReponse(const reponse_t *rep);
 
 #endif

@@ -106,7 +106,7 @@ void serveur()
 	//struct sockaddr_in sockAdr;
 	
 	acquitterFinClient();
-	sockINET = sessionSrv();
+	sockINET = sessionSrv(PORT_SRV, 6);
 	
 	//Boucle permanente (1 serveur est un daemon)
 	while (1)
