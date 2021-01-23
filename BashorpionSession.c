@@ -25,7 +25,7 @@ int sessionSrv(int portNumber, int nbDeClients)
 	int sockINET;
 	struct sockaddr_in sockAdr;
 	
-	//Création socket INET STREAM (nécessite une co)
+	//Création socket INET STREAM (nécessite une connection)
 	CHECK(sockINET = socket(PF_INET, SOCK_STREAM, 0), "Problème sock serveur ");
 	printf("Numéro de canal créé pour la socket serveur : [%d]\n\n", sockINET);
 
@@ -102,7 +102,7 @@ int acceptClt(int sockINET, struct sockaddr_in *clientAdr)
 
 /**
  * \fn void dialSrvToClient(int socketDialogue, struct sockaddr_in *adresseClient)
- * \brief Permet au serveur de dialoguer avec le client
+ * \brief Permet au serveur de dialoguer avec le client.
 */
 
 void dialSrvToClient(int socketDialogue, struct sockaddr_in *adresseClient)
@@ -116,22 +116,19 @@ void dialSrvToClient(int socketDialogue, struct sockaddr_in *adresseClient)
 	//Dialogue avec le client
 	memset(&buff, 0, MAX_CHAR);
 
-	printf("Attente de réception d'un message\n");
+	printf("Attente de réception d'un message...\n");
 	CHECK(recvfrom(socketDialogue, buff, MAX_CHAR, 0, (struct sockaddr *)&adresseClient, &lenClt), "Problème recv serveur ");
 	
 	reqClient = stringToReq(buff); //On transforme le string en requête pour traiter
 	repSrv=traiterRequest(reqClient); //On génére une réponse qu'on renvoit
 	
 	sendReponse(socketDialogue, repSrv);
-	/*
-	CHECK(shutdown(socketDialogue, SHUT_WR),"-- PB : shutdown()");
-	sleep(1);*/
 }
 
 
 /**
- * \fn message_t dialClientToSrv(int sockINET, const char * MSG)
- * \brief Permet au client de dialoguer avec le serveur
+ * \fn char * dialClientToSrv(int sockINET, const char * MSG)
+ * \brief Permet au client de dialoguer avec le serveur.
 */
 
 char * dialClientToSrv(int sockINET, const char * MSG)
@@ -169,11 +166,55 @@ char * dialClientToSrv(int sockINET, const char * MSG)
 	return(reponse);
 }
 
+
+/**
+ * \fn void sendClientToClient(int sockINET, const char * MSG)
+ * \brief Permet au client d'envoyer des messages à son peer.
+*/
+
+void sendClientToClient(int sockINET, const char * MSG)
+{
+	requete_t *reqClient;
+
+	//Envoi d'un message à un destinataire
+	char code[MAX_CHAR]="";
+	action_t action;
+	message_t msg;
+	short codeShort=0;
+	
+	sscanf(MSG, "%s %s %s\n", code, action, msg);
+	codeShort = atoi(code);
+	
+	reqClient = createRequete(codeShort, action, msg);
+	sendRequete(sockINET, reqClient);
+}
+
+
+/**
+ * \fn void receiveClientToClient(int socketDialogue)
+ * \brief Permet au client de recevoir des messages de son peer.
+*/
+
+void receiveClientToClient(int socketDialogue)
+{
+	message_t buff;
+	requete_t * reqClient;
+
+	//Dialogue avec le client
+	memset(&buff, 0, MAX_CHAR);
+
+	printf("Attente de réception d'un message...\n");
+	CHECK(recv(socketDialogue, buff, MAX_CHAR, 0), "Problème recv serveur ");
+	
+	reqClient = stringToReq(buff); //On transforme le string en requête pour traiter
+	traiterRequest(reqClient); //On traite la requête
+}
+
+
 /**
  * \fn int sendRequete(const int sock, const requete_t *req);
  * \brief Permet d'envoyer la requête passé en paramètre à la socket sock.
 */
-
 
 int sendRequete(const int sock, const requete_t *req)
 {
@@ -181,16 +222,16 @@ int sendRequete(const int sock, const requete_t *req)
 	reqToString(req, msg);
 	
 	//Envoi d'un message à un destinataire
-	printf("Envoi du message INET suivant %s\n",msg);
+	//printf("Envoi du message INET suivant %s\n",msg);
 	CHECK(send(sock, msg, strlen(msg) + 1, 0), "Problème send du client ");
 	return(0);
 }
+
 
 /**
  * \fn int sendReponse(const int sock, const reponse_t *rep)
  * \brief Permet d'envoyer la réponse passé en paramètre à la socket sock.
 */
-
 
 int sendReponse(const int sock, const reponse_t *rep)
 {
@@ -198,21 +239,7 @@ int sendReponse(const int sock, const reponse_t *rep)
 	repToString(rep, msg);
 	
 	//Envoi d'un message à un destinataire
-	printf("Envoi du message INET suivant %s\n",msg);
+	//printf("Envoi du message INET suivant %s\n",msg);
 	CHECK(send(sock, msg, strlen(msg) + 1, 0), "Problème send du client ");
-	return(0);
-}
-
-/**
- * \fn int sendMsg(const int sock, const struct sockaddr_in *adr, const char *msg);
- * \brief Permet d'envoyer le message passé en paramètre à la socket sock
-*/
-
-
-int sendMsg(const int sock, const struct sockaddr_in *adr, const char *msg)
-{
-	//Envoi d'un message à un destinataire
-	printf("Envoi du message INET suivant %s\n",msg);
-	CHECK(sendto(sock, msg, strlen(msg) + 1, 0, (struct sockaddr *)adr, sizeof(*adr)), "Problème sendto du client ");
 	return(0);
 }

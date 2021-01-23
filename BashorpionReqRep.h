@@ -29,18 +29,17 @@
 
 // ************ DEFINES ************
 
-#define MSG_CLT1		"1 : Ceci est un message client!" 
-#define MSG_CLT2		"2 : Ceci est un second message client!"
-#define MSG_SRV1		"Ceci est une réponse serveur!"
-#define MSG_SRV2		"Ceci est une autre réponse serveur!"
 #define MAX_CHAR		512 //Constante permettant de spécifier la taille MAX des char*.
-#define PORT_CLT		60001 //doit être > à 1023
-#define PORT_SRV		60002 //doit être > à 1023
-							 //exclure les ports assigned services dans more /etc/services
+#define PORT_CLT		60001 //doit être > à 1023 et exclure les ports assigned services dans more /etc/services
+#define PORT_SRV		60002 //doit être > à 1023 et exclure les ports assigned services dans more /etc/services
 #define ADDR_SRV		"127.0.0.1"
 	
+// ******** VARIABLES GLOBALES ********
+
+int coup;
 int hasAcceptedDuel;
 char opponentName[MAX_CHAR];
+char bufferRevanche[MAX_CHAR]; 
 
 // ************ MACRO - FONCTIONS ************					
 	
@@ -120,6 +119,7 @@ typedef struct {
 
 requete_t * createRequete(short no, action_t act, const message_t myParams);
 
+
 /**
  * \fn reponse_t * createReponse(short no, const message_t resultat);
  * \brief Permet de créer une nouvelle réponse en spécifiant le code, et le message.
@@ -127,17 +127,22 @@ requete_t * createRequete(short no, action_t act, const message_t myParams);
 
 reponse_t * createReponse(short no, const message_t resultat);
 
+
 /**
  * \fn reponse_t * traiterRequest(const requete_t *req)
- * \brief Permet de traiter la requête passé en paramètre.
+ * \brief Permet de traiter la requête passé en paramètre et crée une réponse.
 */
 
 reponse_t * traiterRequest(const requete_t *req);
 
+
 /**
  * \fn char * traiterReponse(const reponse_t *rep)
- * \brief Permet de traiter la réponse passé en paramètre.
+ * \brief Permet de traiter la réponse passé en paramètre, renvoie une chaine de caractère pour 
+ * afficher le résultat du traitement.
 */
+
 char * traiterReponse(const reponse_t *rep);
+
 
 #endif

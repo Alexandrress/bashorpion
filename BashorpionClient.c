@@ -14,54 +14,61 @@
 #include "BashorpionReqRep.h"
 
 void client();
-void threadComServeur(void * obj);
+void threadComServeur();
 void * threadPeerToPeer(char * ip);
-void intro();
+void affichagePlateauDeJeu(const char plateau[3][3]);
 void playBashorpion(int socket, char * buffer, int playerID);
+void intro();
+void introLobby();
 
 // ******** VARIABLES GLOBALES ********
 
+struct sockaddr_in clientAdr;
 int sockDialogueServeur, sockDialoguePeerToPeer, sockConso, sockBase;
-int portServ;
+char serverIP[MAX_CHAR];
+infoUser_t informationJoueur;
+pthread_t tid;
+
+//Variables de jeu
 int myScore=0;
 int opponentScore=0;
 int isInGame=0;
+int coup=0;
 int turn=0;
 int playerID=0;
-char serverIP[MAX_CHAR];
-infoUser_t informationJoueur;
-pthread_t  tid; /*Thread ID*/  
-struct sockaddr_in clientAdr;
+int hasAcceptedDuel=0;
 
 // ************ FONCTIONS ************
 
 /**
  * \fn void client()
- * \brief Fonction principale du client permettant de créer la session, lancer
- la connection et de dialoguer.
+ * \brief Fonction principale du client permettant de se connecter au lobby puis
+ d'ouvrir un serveur pour le peer to peer.
 */
 
 void client()
 {
-	printf("Entrez votre username : ");
+	printf("\n");
+	
+	printf("Entrez votre port de serveur à ouvrir pour accepter les duels : ");
+	scanf("%d", &informationJoueur.portIP);
+	
+	printf("Entrez l'adresse du serveur du lobby Bashorpion à rejoindre : ");
+	scanf("%s", serverIP);
+	
+	printf("Entrez votre username pour rejoindre le serveur : ");
 	scanf("%s", informationJoueur.username);
 	
 	printf("\n");
-	printf("Entrez l'adresse du serveur du lobby Bashorpion : ");
-	scanf("%s", serverIP);
-
-	printf("\n");
-	printf("Entrez votre PORT de serveur : ");
-	scanf("%d", &portServ);
 
 	sockDialogueServeur = sessionClt();
 	sockDialogueServeur = connectSrv(sockDialogueServeur, serverIP, PORT_SRV);
 	pthread_create(&tid, NULL, (void *)threadComServeur, (void *) &sockDialogueServeur);
 	
-	sockBase = sessionSrv(portServ, 1);
+	sockBase = sessionSrv(informationJoueur.portIP, 1);
 	sockConso = acceptClt(sockBase, &clientAdr);
 	
-	/* Pour stocker les inputs user*/
+	//Pour les users inputs
 	char buffer[MAX_CHAR]; 
 	
 	while(sockConso)
@@ -72,20 +79,22 @@ void client()
 		//On reçoit la demande et on décide si on accepte le duel ou non
 		dialSrvToClient(sockConso, &clientAdr);
 		
+		printf("\n");
+		
 		if (hasAcceptedDuel == 1)
 		{
 			myScore=0;
 			opponentScore=0;
 			isInGame = 1;
 			printf("Ton score: %d\n", myScore);
-			printf("Score adverse: %d\n",opponentScore);
+			printf("Score adverse: %d\n", opponentScore);
 		}
 		else
 		{
 			myScore=0;
 			opponentScore=0;
 			isInGame = 0; 
-			printf("\nTu as refusé...\n");
+			printf("Tu as refusé...\n");
 		}
 		
 		//On joue au jeu tant qu'ils veulent jouer ensemble
@@ -105,45 +114,46 @@ void client()
 		sockConso = acceptClt(sockBase, &clientAdr); 
 	}
 	
-	//Fermeture du socket
-	CHECK(close(sockBase), "Problème close sock client ");
-	CHECK(close(sockConso), "Problème close sock client ");
-	CHECK(close(sockDialoguePeerToPeer), "Problème close sock client ");
-	CHECK(close(sockDialogueServeur), "Problème close sock client ");
+	//Fermeture des sockets
+	CHECK(close(sockBase), "Problème close sock client 1 ");
+	CHECK(close(sockConso), "Problème close sock client 2 ");
+	CHECK(close(sockDialoguePeerToPeer), "Problème close sock client 3 ");
+	CHECK(close(sockDialogueServeur), "Problème close sock client 4 ");
 }
 
+
 /**
- * \fn void * threadComServeur(void * obj)
+ * \fn void threadComServeur()
  * \brief Thread du client permettant de communiquer avec le serveur lobby
 */
-void threadComServeur(void * obj)
+
+void threadComServeur()
 {
 	int numberOfParams=0;
 	int flagInstructions=0;
 
-	/* Permet de close le thread d'un autre thread. */
+	//Permet de close le thread à partir d'un autre thread, utile en duel.
 	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
 
-	/* Pour stocker les inputs user*/
+	//Pour stocker les inputs user
 	char MSG_CLIENT[MAX_CHAR] = "100 PUT ";
 	char buffer[MAX_CHAR]; 
 	
 	//Récupére les réponses
 	char * reponse = (char *) malloc(sizeof(char) * MAX_CHAR);
 	
-	//On copie le pseudo dans dans le message de connexion
+	//On copie le pseudo dans le message de connexion pour le lobby
 	strcat(MSG_CLIENT,informationJoueur.username);
 	
 	//On se connecte en envoyant nos informations
 	reponse = dialClientToSrv(sockDialogueServeur, MSG_CLIENT);
-	printf("%s\n",reponse);
+	//printf("%s\n",reponse); Message de confirmation d'ajout à la liste du lobby
 	
 	memset(&reponse, 0, MAX_CHAR);
 	memset(&MSG_CLIENT, 0, MAX_CHAR);
 	
-	/* Instructions lobby */
-	printf("\n");
-	printf("Commandes: \n\n - list\n - battle <nomDuJoueur>\n - accept\n - deny\n - exit\n\n");
+	//Message bienvenue serveur + instructions
+	introLobby();
 
 	while(1)
 	{
@@ -182,7 +192,9 @@ void threadComServeur(void * obj)
 			strcpy(opponentName, arg);
 			strcpy(MSG_CLIENT,"100 GETIP ");
 			strcat(MSG_CLIENT,opponentName);
+			//TODO
 			//reponse=dialClientToSrv(sockDialogueServeur, MSG_CLIENT);
+			//En l'abscence de réponse on suppose que l'autre client est en localhost
 			reponse="127.0.0.1";
 			pthread_create(&tid, NULL, (void*)threadPeerToPeer, reponse); 
 			memset(&MSG_CLIENT, 0, MAX_CHAR);
@@ -199,20 +211,22 @@ void threadComServeur(void * obj)
 			}
 			else
 			{
-				printf("\n");
+				printf("\n\n");
 				printf("Commandes: \n\n - list\n - battle <nomDuJoueur>\n - accept\n - deny\n - exit\n\n");
 			}
 		}
 	}
 }
 
+
 /**
  * \fn void * threadPeerToPeer(char * ip)
  * \brief Thread du client permettant de communiquer avec un autre client en peer to peer
 */
+
 void * threadPeerToPeer(char * ip)
 {
-	/* Pour stocker les inputs user*/
+	//Pour envoyer des requêtes
 	char MSG_CLIENT[MAX_CHAR];
 	char buffer[MAX_CHAR]; 
 	
@@ -223,14 +237,18 @@ void * threadPeerToPeer(char * ip)
 	printf("Envoie de l'invitation...\n");	
 	
 	sockDialoguePeerToPeer = sessionClt();
+	//Port de connexion normalement "PORT_CLT 60001" mais comme on test 
+	//en localhost on peut pas ouvrir deux fois le port 60001
 	sockDialoguePeerToPeer = connectSrv(sockDialoguePeerToPeer, ip, 60006);
 	
 	strcpy(MSG_CLIENT,"200 BATTLE ");
 	strcat(MSG_CLIENT,informationJoueur.username);
 	reponse=dialClientToSrv(sockDialoguePeerToPeer, MSG_CLIENT);
-	printf("%s > %s\n", opponentName, reponse);
+	//printf("%s > %s\n", opponentName, reponse); Message de refus ou d'acceptation du duel
 	memset(&MSG_CLIENT, 0, MAX_CHAR);
 	memset(&reponse, 0, MAX_CHAR);
+	
+	printf("\n");
 	
 	if (hasAcceptedDuel == 1)
 	{
@@ -267,41 +285,100 @@ void * threadPeerToPeer(char * ip)
 	pthread_exit(0);
 }
 
+
+/**
+ * \fn void affichagePlateauDeJeu(const char plateau[3][3])
+ * \brief Permet d'afficher l'état du jeu dans la fonction playBashorpion().
+*/
+
+void affichagePlateauDeJeu(const char plateau[3][3])
+{
+	int j,w = 0;
+	
+	printf("\n\n");
+	
+	// Affichage plateau
+	for (j=0; j<3; j++)
+	{
+		for (w=0; w<3; w++)
+		{
+			if (w<2)
+			{
+				if (plateau[j][w] == 'X')
+				{
+					printf("\033[0;34m");
+					printf(" %c ",plateau[j][w]);
+					printf("\033[0m");
+					printf("|");	
+				}
+				else if (plateau[j][w] == 'O')
+				{
+					printf("\033[0;31m");
+					printf(" %c ",plateau[j][w]);
+					printf("\033[0m");
+					printf("|");
+				}
+				else
+					printf(" %c |",plateau[j][w]);
+			}
+			else
+			{
+				if (plateau[j][w] == 'X')
+				{
+					printf("\033[0;34m");
+					printf(" %c\n",plateau[j][w]);
+					printf("\033[0m");
+				}
+				else if (plateau[j][w] == 'O')
+				{
+					printf("\033[0;31m");
+					printf(" %c\n",plateau[j][w]);
+					printf("\033[0m");
+				}
+				else
+					printf(" %c\n",plateau[j][w]);
+			}
+		}
+		if (j<2)
+				printf("---+---+---\n");
+	}
+}
+
+
 /**
  * \fn void playBashorpion(int socket, char * buffer, int playerID)
- * \brief Fonction permettant de jouer au morpion
+ * \brief Fonction permettant de jouer au morpion.
 */
+
 void playBashorpion(int socket, char * buffer, int playerID)
 {
-	int len, dataSocket = socket;
+	int dataSocket = socket;
 
+	//Pour envoyer des requêtes
+	char MSG_CLIENT[MAX_CHAR] = "";
+	//Pour stocker les coups user
+	char coups[MAX_CHAR] = "";
+	
 	printf("\n\n\n");
 	printf("- LE MORPION COMMENCE -\n");
 
 	int i = 0;
 	int player = 0;
-	int go = 0;                                  /* Square selection number for turn     */
-	int row = 0;                                 /* Row index for a square               */  
-	int column = 0;                              /* Column index for a square            */
-	int line = 0;                                /* Row or column index in checking loop */
-	int winner = 0;                              /* The winning player                   */
-	char board[3][3] = {                         /* The board                            */
-					   {'1','2','3'},          /* Initial values are reference numbers */
-					   {'4','5','6'},          /* used to select a vacant square for   */
-					   {'7','8','9'}           /* a turn.                              */
+	int row = 0;                        
+	int column = 0;                              
+	int line = 0;                            
+	int winner = 0;                             
+	char plateau[3][3] = {                     // Le plateau de jeu                     
+					   {'1','2','3'},          // Les valeurs permettent de choisir
+					   {'4','5','6'},          // le coup à jouer
+					   {'7','8','9'}           
 					 };
 				 
 
 	//Le jeu continu tant qu'il n'y a pas de winner ou tant que les cases ne sont pas tous remplis.
 	for( i = (0 + turn); i<(9 + turn) && winner==0; i++)
 	{
-		// Affichage plateau
-		printf("\n\n");
-		printf(" %c | %c | %c\n", board[0][0], board[0][1], board[0][2]);
-		printf("---+---+---\n");
-		printf(" %c | %c | %c\n", board[1][0], board[1][1], board[1][2]);
-		printf("---+---+---\n");
-		printf(" %c | %c | %c\n", board[2][0], board[2][1], board[2][2]);
+		affichagePlateauDeJeu(plateau);
 	  
 		player = i%2 + 1;
 
@@ -310,44 +387,49 @@ void playBashorpion(int socket, char * buffer, int playerID)
 		{
 			if (player == playerID)
 			{
+				strcpy(MSG_CLIENT,"");
+				strcpy(coups,"");
+				strcpy(MSG_CLIENT,"");
+				strcpy(MSG_CLIENT,"200 PLAY ");
+				
 				printf("\n");
-				printf("%s, Entrez l'emplacement de votre case à jouer %c: ", informationJoueur.username,(player==1)?'X':'O');
-				scanf("%d", &go);
-				send(dataSocket, &go, sizeof(go), 0);
+				printf("%s, entrez l'emplacement de votre case à jouer %c: ", informationJoueur.username,(player==1)?'X':'O');
+				scanf("%d", &coup);
+				
+				sprintf(coups, "%d", coup);
+				strcat(MSG_CLIENT, coups);
+				
+				sendClientToClient(dataSocket, MSG_CLIENT);
 			}
 			else 
 			{
 				printf("\n");
 				printf("En attente de %s...\n", opponentName);
-				len = recv(dataSocket, &go, MAX_CHAR, 0);
-				printf("%s a choisi %d\n", opponentName, go);
+				receiveClientToClient(dataSocket);
+				printf("%s a choisi %d.\n", opponentName, coup);
 			}
 
-			row = --go/3;                                
-			column = go%3;
-		} while(go<0 || go>9 || board[row][column]>'9');
+			row = --coup/3;                                
+			column = coup%3;
+			
+		} while(coup<0 || coup>9 || plateau[row][column]>'9');
 
-		board[row][column] = (player == 1) ? 'X' : 'O'; 
+		plateau[row][column] = (player == 1) ? 'X' : 'O'; 
 
 		//Conditions de victoire 
-		if((board[0][0] == board[1][1] && board[0][0] == board[2][2]) ||
-		 (board[0][2] == board[1][1] && board[0][2] == board[2][0]))
+		if((plateau[0][0] == plateau[1][1] && plateau[0][0] == plateau[2][2]) ||
+		 (plateau[0][2] == plateau[1][1] && plateau[0][2] == plateau[2][0]))
 			winner = player;
 		else
 			for(line = 0; line <= 2; line ++)
-				if((board[line][0] == board[line][1] && board[line][0] == board[line][2])||
-				 (board[0][line] == board[1][line] && board[0][line] == board[2][line]))
+				if((plateau[line][0] == plateau[line][1] && plateau[line][0] == plateau[line][2])||
+				 (plateau[0][line] == plateau[1][line] && plateau[0][line] == plateau[2][line]))
 					winner = player;
 
 	}
 	
 	// Fin du jeu, plateau final
-	printf("\n\n");
-	printf(" %c | %c | %c\n", board[0][0], board[0][1], board[0][2]);
-	printf("---+---+---\n");
-	printf(" %c | %c | %c\n", board[1][0], board[1][1], board[1][2]);
-	printf("---+---+---\n");
-	printf(" %c | %c | %c\n", board[2][0], board[2][1], board[2][2]);
+	affichagePlateauDeJeu(plateau);
 
 	// Message de fin
 	if(winner == 0)
@@ -370,9 +452,7 @@ void playBashorpion(int socket, char * buffer, int playerID)
 	
 	printf("\n");
 	printf("Ton score: %d\n", myScore);
-	printf("\n");
 	printf("Score adverse: %d\n",opponentScore);
-
 
 	if (turn == 0 ) 
 		turn++;
@@ -381,7 +461,7 @@ void playBashorpion(int socket, char * buffer, int playerID)
 
 	//Demander si on fait une autre partie ou non
 	printf("\n");
-	printf("Une autre partie peut-être? (y/n)\n");
+	printf("Une autre partie peut-être? (accept/deny)\n");
 	fgetc(stdin);
 	fgets(buffer, sizeof buffer, stdin);
 	buffer[strlen(buffer)-1] = '\0';
@@ -391,36 +471,64 @@ void playBashorpion(int socket, char * buffer, int playerID)
 	//On met le flag de la boucle isInGame à 1 ou 0 selon leurs choix
 	isInGame=0;
 	
-	if (strcmp(buffer, "y") == 0) 
+	if (strcmp(buffer, "accept") == 0) 
 		isInGame = 1;
 
-	send(dataSocket, buffer, strlen(buffer), 0);
-	len = recv(dataSocket, buffer, MAX_CHAR, 0);
-	buffer[len] = '\0';
+	strcpy(MSG_CLIENT,"200 RE ");
+	strcat(MSG_CLIENT,buffer);
+	sendClientToClient(dataSocket, MSG_CLIENT);
 	
-	if (strcmp(buffer, "y") != 0 && isInGame==1)
+	receiveClientToClient(dataSocket);
+	
+	if (strcmp(bufferRevanche, "accept") != 0 && isInGame==1)
 	{
 		printf("\n");
-		printf("\n%s a refusé...\n", opponentName);
+		printf("%s a refusé...\n", opponentName);
 		isInGame = 0;
 		myScore=0;
 		opponentScore=0;
 	}
+	
+	strcpy(MSG_CLIENT,"");
+	strcpy(coups,"");
+	strcpy(bufferRevanche,"");
+	strcpy(buffer,"");
 }
+
 
 /**
  * \fn void intro()
- * \brief Fonction d'affichage qui accueil le client
+ * \brief Fonction d'affichage qui accueille le client dans le launcher Bashorpion
 */
+
 void intro()
 {
 	printf("\n");
-	printf("Bienvenue sur Bashorpion! Le morpion directement dans ton bash!\n\n");
+	printf("###################################################################\n");
+	printf("                                                                   \n");
+	printf("Bienvenue sur Bashorpion! Le morpion directement dans ton bash!    \n");
+	printf("                                                                   \n");
+	printf("###################################################################\n\n");
 }
+
+
+/**
+ * \fn void introLobby()
+ * \brief Fonction d'affichage qui accueille le client dans un lobby Bashorpion
+*/
+void introLobby()
+{
+	printf("\n");
+	printf("###################################################################\n");
+	printf("Bienvenue dans un lobby Bashorpion!                                \n");
+	printf("###################################################################\n");
+	printf("\n\n");
+	printf("Commandes: \n\n - list\n - battle <nomDuJoueur>\n - accept\n - deny\n - exit\n\n");
+}
+
 
 int main()
 {
-	hasAcceptedDuel = 0;
 	intro();
 	client();
 	printf("Fin du client Bashorpion.\n");

@@ -29,6 +29,7 @@ char * reqToString(const requete_t *req, message_t msg)
 	return(msg);
 } 
 
+
 /**
  * \fn char * repToString(const reponse_t *rep, message_t msg);
  * \brief Décompose une réponse en chaîne de caractère.
@@ -43,9 +44,10 @@ char * repToString(const reponse_t *rep, message_t msg)
 	return(msg);
 } 
 
+
 /**
  * \fn requete_t *stringToReq(const message_t msg);
- * \brief Permet de convertir une chaîne de caractère en structure de réponse.
+ * \brief Permet de convertir une chaîne de caractère en structure de requête.
 */
 
 requete_t *stringToReq(const message_t msg)
@@ -56,6 +58,7 @@ requete_t *stringToReq(const message_t msg)
 	return(req);
 }
 
+
 /**
  * \fn reponse_t *stringToRep(const message_t msg);
  * \brief Permet de convertir une chaîne de caractère en structure de réponse.
@@ -63,7 +66,7 @@ requete_t *stringToReq(const message_t msg)
 
 reponse_t *stringToRep(const message_t msg)
 {
-	//Déserialization d'une chaine de caractères en requête (structure)
+	//Déserialization d'une chaine de caractères en réponse (structure)
 	reponse_t * rep = (reponse_t *) malloc(sizeof(reponse_t));
 	sscanf(msg,"%hd:%[^\n]", &rep->typeRep, rep->result);
 	return(rep);

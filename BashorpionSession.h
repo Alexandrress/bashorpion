@@ -35,7 +35,7 @@ int sessionClt();
 
 
 /**
- * \fn int connectSrv(int sockINET, char* serverIP, int portNumber);
+ * \fn int connectSrv(int sockINET, char* serverIP, int portNumber)
  * \brief Permet au client de se connecter au serveur.
 */
 
@@ -52,18 +52,34 @@ int acceptClt(int sockINET, struct sockaddr_in *clientAdr);
 
 /**
  * \fn void dialSrvToClient(int socketDialogue, struct sockaddr_in *adresseClient)
- * \brief Permet au serveur de dialoguer avec le client
+ * \brief Permet au serveur de dialoguer avec le client.
 */
 
 void dialSrvToClient(int socketDialogue, struct sockaddr_in *adresseClient);
 
 
 /**
- * \fn void dialClientToSrv(int sockINET, const char * MSG)
- * \brief Permet au client de dialoguer avec le serveur
+ * \fn char * dialClientToSrv(int sockINET, const char * MSG)
+ * \brief Permet au client de dialoguer avec le serveur.
 */
 
 char * dialClientToSrv(int sockINET, const char * MSG);
+
+
+/**
+ * \fn void sendClientToClient(int sockINET, const char * MSG)
+ * \brief Permet au client d'envoyer des messages à son peer.
+*/
+
+void sendClientToClient(int sockINET, const char * MSG);
+
+
+/**
+ * \fn void receiveClientToClient(int socketDialogue)
+ * \brief Permet au client de recevoir des messages de son peer.
+*/
+
+void receiveClientToClient(int socketDialogue);
 
 
 /**
@@ -73,19 +89,13 @@ char * dialClientToSrv(int sockINET, const char * MSG);
 
 int sendRequete(const int sock, const requete_t *req);
 
+
 /**
  * \fn int sendReponse(const int sock, const reponse_t *rep)
  * \brief Permet d'envoyer la réponse passé en paramètre à la socket sock.
 */
 
 int sendReponse(const int sock, const reponse_t *rep);
-
-/**
- * \fn int sendMsg(const int sock, const struct sockaddr_in *adr, const char *msg);
- * \brief Permet d'envoyer le message passé en paramètre à la socket sock
-*/
-
-int sendMsg(const int sock, const struct sockaddr_in *adr, const char *msg);
 
 
 #endif
