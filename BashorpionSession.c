@@ -99,9 +99,14 @@ int acceptClt(int sockINET, struct sockaddr_in *clientAdr)
 	int sd;
 	socklen_t lenClt;
 		
-	lenClt = sizeof(clientAdr);
+	lenClt = sizeof(*clientAdr);
+	
+	printf("[SERVER]:Attente d'une connexion client\n");
 	//Attente de connexion client
-	CHECK(sd=accept(sockINET, (struct sockaddr *)&clientAdr, &lenClt), "Problème bind serveur ");
+	CHECK(sd=accept(sockINET, (struct sockaddr *)clientAdr, &lenClt), "Problème bind serveur ");
+	
+	printf("[SERVER]:Acceptation de connexion du client [%s:%d]\n", inet_ntoa(clientAdr->sin_addr), ntohs(clientAdr->sin_port));
+	
 	return sd;
 }
 
@@ -117,15 +122,21 @@ void dialSrvToClient(int socketDialogue, struct sockaddr_in *adresseClient)
 	message_t buff;
 	requete_t * reqClient;
 	socklen_t lenClt;
+	
+	//~ printf("test in_port:%d\n", adresseClient->sin_port); //Ok
 
-	lenClt = sizeof(adresseClient);
+	lenClt = sizeof(*adresseClient);
 	//Dialogue avec le client
 	memset(&buff, 0, MAX_CHAR);
-	//lenClt = sizeof(clientAdr);
+	//~ printf("111\n");
 	printf("Attente de réception d'un message\n");
-	CHECK(recvfrom(socketDialogue, buff, MAX_CHAR, 0, (struct sockaddr *)&adresseClient, &lenClt), "Problème recv serveur ");
+	printf("Affichage des paramètres : \n- %d\n- %s\n- %d\n- 0\n- %d\n- %d\n", socketDialogue, buff, MAX_CHAR, adresseClient, lenClt);
+	CHECK(recvfrom(socketDialogue , buff , MAX_CHAR , 0 , (struct sockaddr *)adresseClient , &lenClt), "Problème recv serveur ");
+	//~ printf("222\n");
 	reqClient = stringToReq(buff);
+	//~ printf("333\n");
 	traiterRequest(reqClient); 
+	//~ printf("444\n");
 	//printf("\tMessage reçu : \"%s\"\n", buff);
 	//printf("\tpar le canal %s\n\n", clientAdr.sun_path);
 	sscanf(reqClient->params,"%d",&req);

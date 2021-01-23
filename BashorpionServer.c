@@ -33,7 +33,9 @@ void * serverFils(void *);
 // ******** VARIABLES GLOBALES ********
 
 int sockINET;
-
+//~ struct sockaddr_in *clientAdr; //Tableau de de structures d'adresse de clients
+struct sockaddr_in clientAdr[CAPACITE_SERVER]; //Tableau de de structures d'adresse de clients
+int rangCourant; //Rang de la structure d'adresses à laquelle l'adresse du dernier client connecté est stockée
 
 // ************ FONCTIONS ************
 
@@ -104,10 +106,9 @@ void nothing(void)
 
 void serveur()
 {
+	//Socket de dialogue
 	int sd, /*pid,*/ i;
-	struct sockaddr_in clientAdr;
-	int overcharged=0; /*Surcharge du server : 0 <=> server disponible
-												1 <=> serveur en capacité max, ne peut plus prendre de clients*/
+	
 	//struct sockaddr_in clientAdr;
 	pthread_t *tab_thread; //tableau de Threads de dialogue
 	//pthread_t threadErr; //Thread de secours utilisé pour informer le client de la surcharge du serveur (capacité max de clients connectés atteinte)
@@ -118,35 +119,30 @@ void serveur()
 	tab_thread = (pthread_t*)malloc(CAPACITE_SERVER*sizeof(pthread_t));
 	
 	acquitterFinClient();
+	//Création, initialisation et mise en service de la socket d'écoute
 	sockINET = sessionSrv();
 	
 	//Boucle permanente (1 serveur est un daemon)
 	while (1)
-	{
-		//Attente de connexion client
-		sd = acceptClt(sockINET, &clientAdr);
-		
+	{	
+		//Recherche du prochain "slot" disponible pour le client suivant
 		i=0;
-		while (&tab_thread[i] == NULL){
+		//Recherche d'un emplacement de thread disponible pour la création d'un thread de service
+		while (&tab_thread[i] == NULL)
 			i++;
-			if (i == CAPACITE_SERVER){
-				printf("Serveur surchargé, ne peut plus prendre de demandes de connexion\n");
-				overcharged = 1;
-				break;
-			}
-		}
 		
+		
+		//Attente de connexion client
+		sd = acceptClt(sockINET, clientAdr+i);
+		rangCourant=i;
 		
 		//Création d'un thread de dialogue pour communiquer avec le client
-		if (overcharged == 1) //Envoi de message de surcharge au client
-			/*CHECK(pthread_create());*/ printf("Overcharged\n");
-		else
-			CHECK(pthread_create(&tab_thread[i], NULL, serverFils, (void *) &sd), "PB - pthreadCreate"); //Création d'un thread de server fils
+		CHECK(pthread_create(&tab_thread[i], NULL, serverFils, (void *) &sd), "PB - pthreadCreate"); //Création d'un thread de server fils
 		/*
 		 * A FINIR !!!!!
 		 * */
 		
-		CHECK(close(sd), "Problème close sock dialogue serveur fils ");
+		//CHECK(close(sd), "Problème close sock dialogue serveur fils ");
 		
 		/*
 		CHECK(pid = fork(), "Problème fork() ");
@@ -165,12 +161,18 @@ void serveur()
 	CHECK(close(sockINET), "Problème close sock serveur père ");
 }
 
-
+//Fonction exécutée par le thread de service du serveur
 void * serverFils(void *arg){
+	int i = rangCourant;
 	int* sd = (int*)arg;
-	printf("Ouais je suis le serveur fils : %d\n", *sd);
+	printf("Ouais je suis le serveur fils : rangCourant=%d : sd=%d\n", i, *sd);
+	
+	printf("sin_port : %u\n", clientAdr[i].sin_port);
+	
+	dialSrvToClient(*sd, clientAdr+i);
 	
 	//On commence par traiter la requête
+	
 	
 	//On envoie la réponse appropriée
 }
