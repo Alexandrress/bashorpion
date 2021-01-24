@@ -65,40 +65,58 @@ reponse_t * traiterRequest(const requete_t *req)
 			{
 				printf("GET\n");
 				
-				char listeDesJoueurs[MAX_CHAR];
-				strcpy(listeDesJoueurs,"Voici les joueurs en ligne : ");
-				for(int joueur=0; joueur<=nbPlayer; joueur++)
-				{
-					strcat(listeDesJoueurs,informationDesJoueurs[joueur].username);
-					strcat(listeDesJoueurs," ");
+				sprintf(customMsg, "Voici la liste des joueurs : ");
+				for (i=0 ; i<CAPACITE_SERVER ; i++){
+					if (strcmp(usersDatas[i].username, "")){ 
+						
+						//printf("Utilisateur trouvé !! --> %s\n", usersDatas[i].username);
+						sprintf(customMsg, "%s - %s", customMsg, usersDatas[i].username);
+						
+					}
 				}
-				rep=createReponse(200,listeDesJoueurs);
+				printf("444 : %s\n", customMsg);
+				rep=createReponse(200, customMsg);
+				printf("555\n");
 			}
 			if(strcmp(req->action, "GETIP") == 0)
 			{
 				printf("GETIP\n");
-				char IPDuJoueur[MAX_CHAR];
-				for(int joueur=0; joueur<=nbPlayer; joueur++)
-				{
-					if(strcmp(req->params, informationDesJoueurs[joueur].username)==0)
-					{
-						strcpy(IPDuJoueur, informationDesJoueurs[joueur].ipUser);
-						rep=createReponse(200,IPDuJoueur);
+				
+				for (i=0 ; i<CAPACITE_SERVER ; i++){
+					if (!strcmp(usersDatas[i].username, req->params)){	//false lorsque les 2 chaines sont identiques
+						printf("Joueur trouvé ! \n");
+						printf("Voici l'IP du joueur demandé : %s -> %s\n", usersDatas[i].username, usersDatas[i].ipUser);
+						sprintf(customMsg, "%s", usersDatas[i].ipUser);
 						break;
 					}
-					else //On a pas trouvé le joueur
-						rep=createReponse(404,"NOT FOUND");		
+					else
+						rep=createReponse(404,"NOT FOUND");
 				}
+				//printf("444 : %s\n", customMsg);
+				rep=createReponse(200, customMsg);
+				
+				//~ char IPDuJoueur[MAX_CHAR];
+				//~ for(int joueur=0; joueur<=nbPlayer; joueur++)
+				//~ {
+					//~ if(strcmp(req->params, usersDatas[joueur].username)==0)
+					//~ {
+						//~ strcpy(IPDuJoueur, usersDatas[joueur].ipUser);
+						//~ rep=createReponse(200,IPDuJoueur);
+						//~ break;
+					//~ }
+					//~ else //On a pas trouvé le joueur
+						//~ rep=createReponse(404,"NOT FOUND");		
+				//~ }
 			}
 			if(strcmp(req->action, "DELETE") == 0)
 			{
 				printf("DELETE\n");
 				for(int joueur=0; joueur<=nbPlayer; joueur++)
 				{
-					if(strcmp(req->params, informationDesJoueurs[joueur].username)==0)
+					if(strcmp(req->params, usersDatas[joueur].username)==0)
 					{
-						strcpy(informationDesJoueurs[joueur].ipUser, "");
-						strcpy(informationDesJoueurs[joueur].username, "");
+						strcpy(usersDatas[joueur].ipUser, "");
+						strcpy(usersDatas[joueur].username, "");
 					}
 				}
 				rep=createReponse(200,"Je t'ai supprimé du lobby.");
@@ -106,17 +124,18 @@ reponse_t * traiterRequest(const requete_t *req)
 			if(strcmp(req->action, "PUT") == 0)
 			{
 				printf("PUT\n");
-				
-				while (strcmp(usersDatas[i].username,"")) i++; //True tant que usersDatas[i].username n'est pas vide
+				//printf("params : >%s< -  username : %s><", req->params, usersDatas[0].username);
+				//while (strcmp(usersDatas[i].username, req->params)) i++; //True tant que usersDatas[i].username n'est pas vide
 				//printf("params = %s\n", req->params);
 				
 				//~ strcpy(usersDatas[i].username,req->params);
-				printf("User ajouté à la liste sur le slot %d : \n", i);
+				//printf("User ajouté à la liste sur le slot %d : \n", i);
 				//printf("- username = %s\n - portIP = %ld\n- ipUser = %s\n", usersDatas[i].username, usersDatas[i].portIP, usersDatas[i].ipUser);
-				printf("- username = %s\n", usersDatas[i].username);
+				//printf("- username = %s\n", usersDatas[i].username);
 				
-				nbPlayer++;
+				//nbPlayer++;
 				strcpy(userToAdd,req->params);
+				//printf("- username = %s\n - portIP = %d\n- ipUser = %s\n", usersDatas[i].username, usersDatas[i].portIP, usersDatas[i].ipUser);
 				rep=createReponse(201,"Oui j'ai ajouté l'user à la liste.");
 			}
 			break;

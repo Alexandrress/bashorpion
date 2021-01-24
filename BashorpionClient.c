@@ -200,7 +200,9 @@ void threadComServeur()
 			strcpy(opponentName, arg);
 			strcpy(MSG_CLIENT,"100 GETIP ");
 			strcat(MSG_CLIENT,opponentName);
-
+			
+			printf("MSG_CLIENT = %s\n", MSG_CLIENT);
+			
 			reponse=dialClientToSrv(sockDialogueServeur, MSG_CLIENT);
 
 			if (strcmp(reponse,"ERROR NOT FOUND") == 0)

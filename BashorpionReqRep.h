@@ -74,7 +74,7 @@ typedef struct
 	int portIP;
 } infoUser_t;
 
-infoUser_t informationDesJoueurs[6]; //nbmaxclients
+
 
 /**
  * \struct requete_t
@@ -115,6 +115,7 @@ char bufferRevanche[MAX_CHAR];
 char userToAdd[MAX_CHAR];
 int nbPlayer;
 infoUser_t usersDatas[CAPACITE_SERVER]; //Tableau de structures d'infos de clients
+//~ infoUser_t informationDesJoueurs[6]; //nbmaxclients
 
 // ************ FONCTIONS ************
 

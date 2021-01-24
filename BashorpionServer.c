@@ -82,21 +82,34 @@ void serveur()
 void * threadLobbyServer(void * socketDialogue)
 {
 	
-	int socket, positionJoueur = nbPlayer;
+	int i, socket, positionJoueur = nbPlayer;
 	socket = (int) socketDialogue;
 	char ipDuJoueur[MAX_CHAR];
-	
 	struct sockaddr_in clientAdrCom = clientAdr;
-	
 	struct sockaddr_in peeraddr;
+	
 	socklen_t peeraddrlen = sizeof(peeraddr);
+	
 	getpeername(socket, &peeraddr, &peeraddrlen);
 	inet_ntop(AF_INET, &(peeraddr.sin_addr), ipDuJoueur, MAX_CHAR);
 	
 	//On copie l'adresse IP du joueur ainsi que son nom.
 	dialSrvToClient(socket, &clientAdrCom);
-	strcpy(informationDesJoueurs[positionJoueur].ipUser,ipDuJoueur);
-	strcpy(informationDesJoueurs[positionJoueur].username,userToAdd);
+	
+	//On détermine le 1er emplacement libre auquel le joueur peut être rangé
+	i=0;
+	while (strcmp(usersDatas[i].username,"")) i++; //True tant que usersDatas[i].username n'est pas vide
+	//Remplissage de la structure d'infos utilisateurs
+	strcpy(usersDatas[i].ipUser, ipDuJoueur);
+	strcpy(usersDatas[i].username, userToAdd);
+	printf("Utilisateur ajouté sur le slot %d : \n", i);
+	printf("- username = %s\n- ipUser = %s\n", usersDatas[i].username, usersDatas[i].ipUser);
+	
+	//printf("\n\n");
+	//printf("------ Affichage des slots : \n");
+	//~ for (i=0 ; i < CAPACITE_SERVER ; i++){
+		//~ printf("Slot %d : \n- username = >%s<\n- ipUser = >%s<\n- portIP = >%d<\n\n", i, usersDatas[i].username, usersDatas[i].ipUser, usersDatas[i].portIP);
+	//~ }
 	
 	while(1)
 	{
