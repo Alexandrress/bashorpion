@@ -8,8 +8,8 @@
  * \file BashorpionServer.c
  * \brief Programme permettant de lancer le serveur du projet Bashorpion.
  * \author Alexandre.L & Nicolas.S
- * \version 2.0
- * \date 12 Janvier 2021
+ * \version 3.0
+ * \date 21 Janvier 2021
  *
 */
 
@@ -20,82 +20,16 @@
 #include "BashorpionSession.h"
 #include "BashorpionReqRep.h"
 
-void deroute(int signal_number);
-void acquitterFinClient(void);
-void nothing(void);
-void fin(void);
 void serveur();
-void * serverFils(void *);
-
-#define CAPACITE_SERVER 10
-
+void * threadLobbyServer(void * socketDialogue);
 
 // ******** VARIABLES GLOBALES ********
 
 int sockINET;
-//~ struct sockaddr_in *clientAdr; //Tableau de de structures d'adresse de clients
-struct sockaddr_in clientAdr[CAPACITE_SERVER]; //Tableau de de structures d'adresse de clients
-int rangCourant; //Rang de la structure d'adresses à laquelle l'adresse du dernier client connecté est stockée
+struct sockaddr_in clientAdr;
+pthread_t tid;
 
 // ************ FONCTIONS ************
-
-/**
- * \fn void deroute(int signal_number)
- * \brief Fonction permettant de dérouter les signaux
-*/
-
-void deroute(int signal_number)
-{
-	int status;
-	int pidClient;
-
-	switch (signal_number)
-	{	
-		case SIGCHLD :
-			CHECK(pidClient = wait(&status),"Problème acquittement fils ");
-			printf("Le processus %d s'est terminé.\n",pidClient);
-			break;
-		case SIGINT :
-			fin();
-			exit(0);
-			break;
-		default :
-			break;
-	}
-}
-
-
-/**
- * \fn void acquitterFinClient(void)
- * \brief Fonction permettant d'acquitter les serveurs fils
-*/
-
-void acquitterFinClient(void)
-{
-	struct sigaction newact;
-	newact.sa_handler = deroute;
-	CHECK(sigemptyset(&newact.sa_mask),"Problème sigemptyset() pour SIGCHLD ");
-	newact.sa_flags = SA_RESTART;
-	CHECK(sigaction(SIGCHLD, &newact, NULL), "Appel de sigaction() pour SIGCHLD ");
-}
-
-
-/**
- * \fn void fin(void)
- * \brief Fonction permettant de fermer la socket 
-*/
-
-void fin(void)
-{
-	//Fermeture de socket
-	CHECK(close(sockINET),"Problème de close() socket pour le serveur père ");
-}
-
-
-void nothing(void)
-{
-	return;
-}
 
 
 /**
@@ -106,89 +40,75 @@ void nothing(void)
 
 void serveur()
 {
-	//Socket de dialogue
-	int sd, /*pid,*/ i;
-	
-	//struct sockaddr_in clientAdr;
+	int sd, i;
 	pthread_t *tab_thread; //tableau de Threads de dialogue
-	//pthread_t threadErr; //Thread de secours utilisé pour informer le client de la surcharge du serveur (capacité max de clients connectés atteinte)
-	
-	printf("Démarrage de l'application serveur\n");
 	
 	//Allocation mémoire pour les threads de dialogue
 	tab_thread = (pthread_t*)malloc(CAPACITE_SERVER*sizeof(pthread_t));
 	
-	acquitterFinClient();
-	//Création, initialisation et mise en service de la socket d'écoute
-	sockINET = sessionSrv();
+	sockINET = sessionSrv(PORT_SRV, CAPACITE_SERVER);
+	
+	//Init struct infoUsers
+	for (i=0 ; i < CAPACITE_SERVER ; i++){
+		memset(usersDatas[i].ipUser, 0, sizeof(usersDatas[i].ipUser));
+		memset(usersDatas[i].username, 0, sizeof(usersDatas[i].username));
+		usersDatas[i].portIP = 0; //Valeurs pemrettant de considérer le slot comme vide
+	}
+	
+	printf("\n");
+	printf("Toutes les structures d'info users ont été réinitialisées !\n");
+	
+	printf("------ Affichage des slots : \n");
+	for (i=0 ; i < CAPACITE_SERVER ; i++){
+		printf("Slot %d : \n- username = >%s<\n- ipUser = >%s<\n- portIP = >%d<\n\n", i, usersDatas[i].username, usersDatas[i].ipUser, usersDatas[i].portIP);
+	}
 	
 	//Boucle permanente (1 serveur est un daemon)
 	while (1)
-	{	
-		//Recherche du prochain "slot" disponible pour le client suivant
-		i=0;
+	{
 		//Recherche d'un emplacement de thread disponible pour la création d'un thread de service
-		while (&tab_thread[i] == NULL)
-			i++;
-		
+		while (&tab_thread[i] == NULL) i++;
 		
 		//Attente de connexion client
-		sd = acceptClt(sockINET, clientAdr+i);
-		rangCourant=i;
-		
-		//Création d'un thread de dialogue pour communiquer avec le client
-		CHECK(pthread_create(&tab_thread[i], NULL, serverFils, (void *) &sd), "PB - pthreadCreate"); //Création d'un thread de server fils
-		/*
-		 * A FINIR !!!!!
-		 * */
-		
-		//CHECK(close(sd), "Problème close sock dialogue serveur fils ");
-		
-		/*
-		CHECK(pid = fork(), "Problème fork() ");
-		if (pid == 0)
-		{
-			atexit(nothing);
-			CHECK(close(sockINET), "Problème close sock serveur fils "); //Le fils a pas besoin
-			//Dialogue avec le client
-			dialSrvToClient(sd, &clientAdr);
-			CHECK(close(sd), "Problème close sock dialogue serveur fils ");		
-			exit(0);
-		}
-		CHECK(close(sd), "Problème close sock dialogue serveur fils ");	*/
+		sd = acceptClt(sockINET, &clientAdr);
+		pthread_create(&(tab_thread[i]), NULL, threadLobbyServer, (void *) sd);
 	}
 	//Fermeture du socket
 	CHECK(close(sockINET), "Problème close sock serveur père ");
 }
 
-//Fonction exécutée par le thread de service du serveur
-void * serverFils(void *arg){
-	int i = rangCourant;
-	int* sd = (int*)arg;
-	printf("Ouais je suis le serveur fils : rangCourant=%d : sd=%d\n", i, *sd);
+
+
+void * threadLobbyServer(void * socketDialogue)
+{
 	
-	printf("sin_port : %u\n", clientAdr[i].sin_port);
+	int socket, positionJoueur = nbPlayer;
+	socket = (int) socketDialogue;
+	char ipDuJoueur[MAX_CHAR];
 	
-	dialSrvToClient(*sd, clientAdr+i);
+	struct sockaddr_in clientAdrCom = clientAdr;
 	
-	//On commence par traiter la requête
+	struct sockaddr_in peeraddr;
+	socklen_t peeraddrlen = sizeof(peeraddr);
+	getpeername(socket, &peeraddr, &peeraddrlen);
+	inet_ntop(AF_INET, &(peeraddr.sin_addr), ipDuJoueur, MAX_CHAR);
 	
+	//On copie l'adresse IP du joueur ainsi que son nom.
+	dialSrvToClient(socket, &clientAdrCom);
+	strcpy(informationDesJoueurs[positionJoueur].ipUser,ipDuJoueur);
+	strcpy(informationDesJoueurs[positionJoueur].username,userToAdd);
 	
-	//On envoie la réponse appropriée
+	while(1)
+	{
+		//Dialogue avec le client
+		dialSrvToClient(socket, &clientAdrCom);
+	}
+	
+	pthread_exit(0);
 }
-
-
 
 int main()
 {
-	//Thread principal (main)
-	struct sigaction newact;
-
-    newact.sa_handler = deroute;
-	CHECK(sigemptyset(&newact.sa_mask),"Problème sigemptyset() pour SIGINT ");
-	newact.sa_flags = SA_RESTART;
-	CHECK(sigaction(SIGINT, &newact, NULL), "Appel de sigaction() pour SIGINT ");
-
 	serveur();
 	printf("Fin d'application.\n");
 	

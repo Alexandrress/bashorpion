@@ -3,8 +3,8 @@
  * \brief Fichier "BashorpionData.c" contenant les fonctions de serialisation de 
  notre projet MCS. Concerne la couche 6 du modèle OSI (Presentation).
  * \author Alexandre.L & Nicolas.S
- * \version 2.0
- * \date 12 Janvier 2021
+ * \version 3.0
+ * \date 21 Janvier 2021
 */
 
 
@@ -31,8 +31,23 @@ char * reqToString(const requete_t *req, message_t msg)
 
 
 /**
+ * \fn char * repToString(const reponse_t *rep, message_t msg);
+ * \brief Décompose une réponse en chaîne de caractère.
+*/
+
+char * repToString(const reponse_t *rep, message_t msg)
+{	
+	//Serialization d'une réponse sous forme d'une chaîne de caractères
+	//c-à-d une suite d'octets
+	memset(msg,0,MAX_CHAR);
+	sprintf(msg,"%hd:%s", rep->typeRep, rep->result);
+	return(msg);
+} 
+
+
+/**
  * \fn requete_t *stringToReq(const message_t msg);
- * \brief Permet de convertir une chaîne de requête en structure de requête.
+ * \brief Permet de convertir une chaîne de caractère en structure de requête.
 */
 
 requete_t *stringToReq(const message_t msg)
@@ -41,4 +56,18 @@ requete_t *stringToReq(const message_t msg)
 	requete_t * req = (requete_t *) malloc(sizeof(requete_t));
 	sscanf(msg,"%hd:%[^:]:%[^\n]", &req->noReq, req->action, req->params);
 	return(req);
+}
+
+
+/**
+ * \fn reponse_t *stringToRep(const message_t msg);
+ * \brief Permet de convertir une chaîne de caractère en structure de réponse.
+*/
+
+reponse_t *stringToRep(const message_t msg)
+{
+	//Déserialization d'une chaine de caractères en réponse (structure)
+	reponse_t * rep = (reponse_t *) malloc(sizeof(reponse_t));
+	sscanf(msg,"%hd:%[^\n]", &rep->typeRep, rep->result);
+	return(rep);
 }
