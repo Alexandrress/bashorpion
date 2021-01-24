@@ -138,6 +138,8 @@ void threadComServeur()
 	//Pour stocker les inputs user
 	char MSG_CLIENT[MAX_CHAR] = "100 PUT ";
 	char buffer[MAX_CHAR]; 
+	char code[MAX_CHAR];
+	char ipToConnect[MAX_CHAR];
 	
 	//Récupére les réponses
 	char * reponse = (char *) malloc(sizeof(char) * MAX_CHAR);
@@ -168,21 +170,27 @@ void threadComServeur()
 		{
 			strcpy(MSG_CLIENT,"100 GET liste");
 			reponse=dialClientToSrv(sockDialogueServeur, MSG_CLIENT);
-			printf("%s\n",reponse);
+			printf("%s\n\n",reponse);
 			memset(&MSG_CLIENT, 0, MAX_CHAR);
 			memset(&reponse, 0, MAX_CHAR);
 		}
 		
 		// Permet de quitter le serveur et de fermer la socket de dialogue.
-		else if(strcmp(buffer, "exit") == 0)
+		else if(strcmp(buffer, "leave") == 0)
 		{
-			strcpy(MSG_CLIENT,"100 DELETE exit");
+			strcpy(MSG_CLIENT,"100 DELETE ");
+			strcat(MSG_CLIENT,informationJoueur.username);
 			reponse=dialClientToSrv(sockDialogueServeur, MSG_CLIENT);
 			memset(&MSG_CLIENT, 0, MAX_CHAR);
 			memset(&reponse, 0, MAX_CHAR);
 			
 			printf("Aurevoir! Merci d'avoir joué!\n");
-			close(sockDialogueServeur);
+			
+			//Fermeture des sockets
+			CHECK(close(sockBase), "Problème close sock client 1 ");
+			CHECK(close(sockConso), "Problème close sock client 2 ");
+			CHECK(close(sockDialogueServeur), "Problème close sock client 4 ");
+			
 			exit(1);
 		}
 		
@@ -192,14 +200,19 @@ void threadComServeur()
 			strcpy(opponentName, arg);
 			strcpy(MSG_CLIENT,"100 GETIP ");
 			strcat(MSG_CLIENT,opponentName);
-			//TODO
-			//reponse=dialClientToSrv(sockDialogueServeur, MSG_CLIENT);
-			//En l'abscence de réponse on suppose que l'autre client est en localhost
-			reponse="127.0.0.1";
-			pthread_create(&tid, NULL, (void*)threadPeerToPeer, reponse); 
-			memset(&MSG_CLIENT, 0, MAX_CHAR);
-			memset(&reponse, 0, MAX_CHAR);
-			pthread_exit(0);
+
+			reponse=dialClientToSrv(sockDialogueServeur, MSG_CLIENT);
+
+			if (strcmp(reponse,"ERROR NOT FOUND") == 0)
+				printf("L'utilisateur n'est pas en ligne!\n\n");
+			else
+			{
+				sscanf(reponse, "%s %s", code, ipToConnect);
+				pthread_create(&tid, NULL, (void*)threadPeerToPeer, ipToConnect); 
+				memset(&MSG_CLIENT, 0, MAX_CHAR);
+				memset(&reponse, 0, MAX_CHAR);
+				pthread_exit(0);
+			}
 		}
 		
 		// Si le client oublie les commandes...
@@ -212,7 +225,7 @@ void threadComServeur()
 			else
 			{
 				printf("\n\n");
-				printf("Commandes: \n\n - list\n - battle <nomDuJoueur>\n - accept\n - deny\n - exit\n\n");
+				printf("Commandes: \n\n - list\n - battle <nomDuJoueur>\n - accept\n - deny\n - leave\n\n");
 			}
 		}
 	}
@@ -237,8 +250,9 @@ void * threadPeerToPeer(char * ip)
 	printf("Envoie de l'invitation...\n");	
 	
 	sockDialoguePeerToPeer = sessionClt();
-	//Port de connexion normalement "PORT_CLT 60001" mais comme on test 
-	//en localhost on peut pas ouvrir deux fois le port 60001
+	//Port de connexion normalement constante "PORT_CLT 60001" mais comme on test 
+	//en localhost on peut pas ouvrir deux fois le port 60001, donc celui qui se fait défié
+	//doit avoir mis un port 60006
 	sockDialoguePeerToPeer = connectSrv(sockDialoguePeerToPeer, ip, 60006);
 	
 	strcpy(MSG_CLIENT,"200 BATTLE ");
@@ -520,10 +534,10 @@ void introLobby()
 {
 	printf("\n");
 	printf("###################################################################\n");
-	printf("Bienvenue dans un lobby Bashorpion!                                \n");
+	printf("Bienvenue dans le lobby Bashorpion!                                \n");
 	printf("###################################################################\n");
 	printf("\n\n");
-	printf("Commandes: \n\n - list\n - battle <nomDuJoueur>\n - accept\n - deny\n - exit\n\n");
+	printf("Commandes: \n\n - list\n - battle <nomDuJoueur>\n - accept\n - deny\n - leave\n\n");
 }
 
 

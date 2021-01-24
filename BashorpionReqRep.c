@@ -61,19 +61,47 @@ reponse_t * traiterRequest(const requete_t *req)
 		case 100: //Lobby
 			if(strcmp(req->action, "GET") == 0)
 			{
-				rep=createReponse(200,"Voici la liste des joueurs."); //TODO
+				char listeDesJoueurs[MAX_CHAR];
+				strcpy(listeDesJoueurs,"Voici les joueurs en ligne : ");
+				for(int joueur=0; joueur<=nbPlayer; joueur++)
+				{
+					strcat(listeDesJoueurs,informationDesJoueurs[joueur].username);
+					strcat(listeDesJoueurs," ");
+				}
+				rep=createReponse(200,listeDesJoueurs);
 			}
 			if(strcmp(req->action, "GETIP") == 0)
 			{
-				rep=createReponse(200,"Voici l'IP du joueur demandé."); //TODO
+				char IPDuJoueur[MAX_CHAR];
+				for(int joueur=0; joueur<=nbPlayer; joueur++)
+				{
+					if(strcmp(req->params, informationDesJoueurs[joueur].username)==0)
+					{
+						strcpy(IPDuJoueur, informationDesJoueurs[joueur].ipUser);
+						rep=createReponse(200,IPDuJoueur);
+						break;
+					}
+					else //On a pas trouvé le joueur
+						rep=createReponse(404,"NOT FOUND");		
+				}
 			}
 			if(strcmp(req->action, "DELETE") == 0)
 			{
-				rep=createReponse(200,"Je t'ai supprimé du lobby."); //TODO
+				for(int joueur=0; joueur<=nbPlayer; joueur++)
+				{
+					if(strcmp(req->params, informationDesJoueurs[joueur].username)==0)
+					{
+						strcpy(informationDesJoueurs[joueur].ipUser, "");
+						strcpy(informationDesJoueurs[joueur].username, "");
+					}
+				}
+				rep=createReponse(200,"Je t'ai supprimé du lobby.");
 			}
 			if(strcmp(req->action, "PUT") == 0)
 			{
-				rep=createReponse(201,"Oui j'ai ajouté l'user à la liste."); //TODO
+				nbPlayer++;
+				strcpy(userToAdd,req->params);
+				rep=createReponse(201,"Oui j'ai ajouté l'user à la liste.");
 			}
 			break;
 		case 200: //Peer-to-peer
@@ -129,33 +157,33 @@ char * traiterReponse(const reponse_t *rep)
 	switch(rep->typeRep)
 	{
 		case 200:
-			strcpy(reponse,"SUCCESS : ");
+			strcpy(reponse,"SUCCESS ");
 			strcat(reponse,rep->result);
 			break;
 		case 201:
-			strcpy(reponse,"USER ADDED : ");
+			strcpy(reponse,"USER ADDED ");
 			strcat(reponse,rep->result);
 			break;
 		case 202:
-			strcpy(reponse,"DUEL ACCEPTED : ");
+			strcpy(reponse,"DUEL ACCEPTED ");
 			strcat(reponse,rep->result);
 			hasAcceptedDuel=1;
 			break;
 		case 404:
-			strcpy(reponse,"ERROR : ");
+			strcpy(reponse,"ERROR ");
 			strcat(reponse,rep->result);
 			break;
 		case 408:
-			strcpy(reponse,"TIMEOUT : ");
+			strcpy(reponse,"TIMEOUT ");
 			strcat(reponse,rep->result);
 			break;
 		case 460:
-			strcpy(reponse,"DUEL REFUSED : ");
+			strcpy(reponse,"DUEL REFUSED ");
 			strcat(reponse,rep->result);
 			hasAcceptedDuel=0;
 			break;
 		default:
-			strcpy(reponse,"UNKNOWN : ");
+			strcpy(reponse,"UNKNOWN ");
 			strcat(reponse,rep->result);
 			break;
 	}

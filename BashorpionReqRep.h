@@ -40,6 +40,8 @@ int coup;
 int hasAcceptedDuel;
 char opponentName[MAX_CHAR];
 char bufferRevanche[MAX_CHAR]; 
+char userToAdd[MAX_CHAR];
+int nbPlayer;
 
 // ************ MACRO - FONCTIONS ************					
 	
@@ -78,6 +80,7 @@ typedef struct
 	int portIP;
 } infoUser_t;
 
+infoUser_t informationDesJoueurs[6]; //nbmaxclients
 
 /**
  * \struct requete_t

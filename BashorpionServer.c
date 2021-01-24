@@ -20,77 +20,16 @@
 #include "BashorpionSession.h"
 #include "BashorpionReqRep.h"
 
-void deroute(int signal_number);
-void acquitterFinClient(void);
-void nothing(void);
-void fin(void);
 void serveur();
-
+void * threadLobbyServer(void * socketDialogue);
 
 // ******** VARIABLES GLOBALES ********
 
 int sockINET;
-
+struct sockaddr_in clientAdr;
+pthread_t tid;
 
 // ************ FONCTIONS ************
-
-/**
- * \fn void deroute(int signal_number)
- * \brief Fonction permettant de dérouter les signaux
-*/
-
-void deroute(int signal_number)
-{
-	int status;
-	int pidClient;
-
-	switch (signal_number)
-	{	
-		case SIGCHLD :
-			CHECK(pidClient = wait(&status),"Problème acquittement fils ");
-			printf("Le processus %d s'est terminé.\n",pidClient);
-			break;
-		case SIGINT :
-			fin();
-			exit(0);
-			break;
-		default :
-			break;
-	}
-}
-
-
-/**
- * \fn void acquitterFinClient(void)
- * \brief Fonction permettant d'acquitter les serveurs fils
-*/
-
-void acquitterFinClient(void)
-{
-	struct sigaction newact;
-	newact.sa_handler = deroute;
-	CHECK(sigemptyset(&newact.sa_mask),"Problème sigemptyset() pour SIGCHLD ");
-	newact.sa_flags = SA_RESTART;
-	CHECK(sigaction(SIGCHLD, &newact, NULL), "Appel de sigaction() pour SIGCHLD ");
-}
-
-
-/**
- * \fn void fin(void)
- * \brief Fonction permettant de fermer la socket 
-*/
-
-void fin(void)
-{
-	//Fermeture de socket
-	CHECK(close(sockINET),"Problème de close() socket pour le serveur père ");
-}
-
-
-void nothing(void)
-{
-	return;
-}
 
 
 /**
@@ -101,11 +40,8 @@ void nothing(void)
 
 void serveur()
 {
-	int sd, pid;
-	struct sockaddr_in clientAdr;
-	//struct sockaddr_in sockAdr;
+	int sd;
 	
-	acquitterFinClient();
 	sockINET = sessionSrv(PORT_SRV, 6);
 	
 	//Boucle permanente (1 serveur est un daemon)
@@ -113,32 +49,41 @@ void serveur()
 	{
 		//Attente de connexion client
 		sd = acceptClt(sockINET, &clientAdr);
-		CHECK(pid = fork(), "Problème fork() ");
-		if (pid == 0)
-		{
-			atexit(nothing);
-			CHECK(close(sockINET), "Problème close sock serveur fils "); //Le fils a pas besoin
-			//Dialogue avec le client
-			dialSrvToClient(sd, &clientAdr);
-			CHECK(close(sd), "Problème close sock dialogue serveur fils ");		
-			exit(0);
-		}
-		CHECK(close(sd), "Problème close sock dialogue serveur fils ");	
+		pthread_create(&tid, NULL, threadLobbyServer, (void *) sd);
 	}
 	//Fermeture du socket
 	CHECK(close(sockINET), "Problème close sock serveur père ");
 }
 
+void * threadLobbyServer(void * socketDialogue)
+{
+	int socket, positionJoueur = nbPlayer;
+	socket = (int) socketDialogue;
+	char ipDuJoueur[MAX_CHAR];
+	
+	struct sockaddr_in clientAdrCom = clientAdr;
+	
+	struct sockaddr_in peeraddr;
+	socklen_t peeraddrlen = sizeof(peeraddr);
+	getpeername(socket, &peeraddr, &peeraddrlen);
+	inet_ntop(AF_INET, &(peeraddr.sin_addr), ipDuJoueur, MAX_CHAR);
+	
+	//On copie l'adresse IP du joueur ainsi que son nom.
+	dialSrvToClient(socket, &clientAdrCom);
+	strcpy(informationDesJoueurs[positionJoueur].ipUser,ipDuJoueur);
+	strcpy(informationDesJoueurs[positionJoueur].username,userToAdd);
+	
+	while(1)
+	{
+		//Dialogue avec le client
+		dialSrvToClient(socket, &clientAdrCom);
+	}
+	
+	pthread_exit(0);
+}
 
 int main()
 {
-	struct sigaction newact;
-
-    newact.sa_handler = deroute;
-	CHECK(sigemptyset(&newact.sa_mask),"Problème sigemptyset() pour SIGINT ");
-	newact.sa_flags = SA_RESTART;
-	CHECK(sigaction(SIGINT, &newact, NULL), "Appel de sigaction() pour SIGINT ");
-
 	serveur();
 	printf("Fin d'application.\n");
 	
