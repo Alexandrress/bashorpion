@@ -17,6 +17,7 @@
 //Si nous sommes sous Windows
 #if defined (WIN32)
 
+	#include <ws2tcpip.h>
     #include <winsock2.h>
     typedef int socklen_t;
 
@@ -25,6 +26,7 @@
 
     #include <sys/types.h>
     #include <sys/socket.h>
+    #include <sys/wait.h>
     #include <netinet/in.h>
     #include <arpa/inet.h>
     #include <unistd.h>
@@ -43,9 +45,6 @@
 #include <stdio.h>
 #include <stdlib.h> 
 #include <string.h>
-#include <errno.h>
-#include <signal.h>
-#include <sys/wait.h>
 #include <pthread.h>
 
 
