@@ -12,5 +12,5 @@ BashorpionData.o : BashorpionData.c BashorpionData.h
 	$(c) $(op) -c BashorpionData.c		
 	
 clean :
-	rm *.exe
 	rm *.o
+	rm *.exe

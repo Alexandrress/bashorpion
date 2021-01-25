@@ -4,8 +4,8 @@
  de génération de requêtes/réponses et de traitements. Concerne la couche 7 du modèle 
  OSI (Application).
  * \author Alexandre.L & Nicolas.S
- * \version 3.0
- * \date 21 Janvier 2021
+ * \version 4.0
+ * \date 25 Janvier 2021
 */
 
 
@@ -33,13 +33,9 @@
 #define PORT_CLT		60001 //doit être > à 1023 et exclure les ports assigned services dans more /etc/services
 #define PORT_SRV		60002 //doit être > à 1023 et exclure les ports assigned services dans more /etc/services
 #define ADDR_SRV		"127.0.0.1"
+#define CAPACITE_SERVER 10 	//Capacité maximmale du server
 	
-// ******** VARIABLES GLOBALES ********
 
-int coup;
-int hasAcceptedDuel;
-char opponentName[MAX_CHAR];
-char bufferRevanche[MAX_CHAR]; 
 
 // ************ MACRO - FONCTIONS ************					
 	
@@ -62,13 +58,12 @@ typedef char message_t[MAX_CHAR];
 
 typedef char action_t[MAX_CHAR];
 
-
 /**
  * \struct infoUser_t
  * \brief Objet Information Users.
  *
  * infoUser_t est une structure permettant de spécifier l'username d'un joueur 
- ainsi que son IP associé.
+ ainsi que son IP associé et le port.
 */
 
 typedef struct
@@ -108,6 +103,15 @@ typedef struct {
 	message_t result;
 } reponse_t;
 
+
+// ******** VARIABLES GLOBALES ********
+
+int coup;
+int hasAcceptedDuel;
+char opponentName[MAX_CHAR];
+char bufferRevanche[MAX_CHAR]; 
+char userToAdd[MAX_CHAR];
+infoUser_t usersDatas[CAPACITE_SERVER]; //Tableau de structures d'infos de clients
 
 // ************ FONCTIONS ************
 

@@ -3,8 +3,8 @@
  * \brief Fichier "BashorpionData.c" contenant les fonctions de serialisation de 
  notre projet MCS. Concerne la couche 6 du modèle OSI (Presentation).
  * \author Alexandre.L & Nicolas.S
- * \version 3.0
- * \date 21 Janvier 2021
+ * \version 4.0
+ * \date 25 Janvier 2021
 */
 
 
