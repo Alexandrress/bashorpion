@@ -121,9 +121,11 @@ void dialSrvToClient(int socketDialogue, struct sockaddr_in *adresseClient)
 	printf("Requête reçue !\n");
 	
 	reqClient = stringToReq(buff); //On transforme le string en requête pour traiter
+	printf("Mark 1\n");
 	repSrv=traiterRequest(reqClient); //On génére une réponse qu'on renvoit
-	
+	printf("Mark 2\n");
 	sendReponse(socketDialogue, repSrv);
+	printf("Mark 3\n");
 }
 
 
@@ -238,9 +240,12 @@ int sendReponse(const int sock, const reponse_t *rep)
 {
 	message_t msg;
 	repToString(rep, msg);
-	
+	printf("AAA\n");
 	//Envoi d'un message à un destinataire
 	//printf("Envoi du message INET suivant %s\n",msg);
+	printf("Infos du send : \n- sock = %d\n - msg = %s\n - len = %ld\n", sock, msg, strlen(msg));
+	
 	CHECK(send(sock, msg, strlen(msg) + 1, 0), "Problème send du client ");
+	printf("BBB\n");
 	return(0);
 }

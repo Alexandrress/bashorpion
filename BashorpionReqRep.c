@@ -113,12 +113,15 @@ reponse_t * traiterRequest(const requete_t *req)
 			if(strcmp(req->action, "DELETE") == 0)
 			{
 				printf("DELETE\n");
-				for(int joueur=0; joueur<=nbPlayer; joueur++)
+				for(int joueur=0; joueur<CAPACITE_SERVER; joueur++)
 				{
 					if(strcmp(req->params, usersDatas[joueur].username)==0)
 					{
+						printf("Suppression des infos de %s : \n");
+						
 						//~ strcpy(usersDatas[joueur].ipUser, "");
 						//~ strcpy(usersDatas[joueur].username, "");
+						printf("- ipUser = >%s<\n- username = >%s<\n", usersDatas[joueur].ipUser, usersDatas[joueur].username);
 						memset(usersDatas[joueur].ipUser, 0, sizeof(usersDatas[joueur].ipUser));
 						memset(usersDatas[joueur].username, 0, sizeof(usersDatas[joueur].username));
 					}

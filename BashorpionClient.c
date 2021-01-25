@@ -181,6 +181,9 @@ void threadComServeur()
 			strcpy(MSG_CLIENT,"100 DELETE ");
 			strcat(MSG_CLIENT,informationJoueur.username);
 			reponse=dialClientToSrv(sockDialogueServeur, MSG_CLIENT);
+			
+			printf("Réponse du client  : %s\n", reponse);
+			
 			memset(&MSG_CLIENT, 0, MAX_CHAR);
 			memset(&reponse, 0, MAX_CHAR);
 			

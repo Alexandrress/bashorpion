@@ -111,11 +111,15 @@ void * threadLobbyServer(void * socketDialogue)
 		//~ printf("Slot %d : \n- username = >%s<\n- ipUser = >%s<\n- portIP = >%d<\n\n", i, usersDatas[i].username, usersDatas[i].ipUser, usersDatas[i].portIP);
 	//~ }
 	
-	while(1)
+	
+	while(strcmp(usersDatas[i].username, ""))
 	{
 		//Dialogue avec le client
+		printf("Le rang de %s est %d\n\n", usersDatas[i].username, i);
 		dialSrvToClient(socket, &clientAdrCom);
 	}
+	
+	printf("-/6/6/6 On est sorti de la boucle !\n");
 	
 	pthread_exit(0);
 }
