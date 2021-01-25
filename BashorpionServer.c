@@ -147,9 +147,19 @@ void printAffichageUsers()
 }
 
 int main()
-{
+{    
+	// Si la plateforme est Windows
+    #if defined (WIN32)
+        WSADATA WSAData;
+        WSAStartup(MAKEWORD(2,2), &WSAData);
+    #endif
+    
 	serveur();
 	printf("Fin d'application.\n");
+	
+	#if defined (WIN32)
+        WSACleanup();
+    #endif
 	
 	return 0;
 }
