@@ -87,13 +87,15 @@ reponse_t * traiterRequest(const requete_t *req)
 						printf("Joueur trouvé ! \n");
 						printf("Voici l'IP du joueur demandé : %s -> %s\n", usersDatas[i].username, usersDatas[i].ipUser);
 						sprintf(customMsg, "%s", usersDatas[i].ipUser);
+						
+						rep=createReponse(200, customMsg);
 						break;
 					}
 					else
 						rep=createReponse(404,"NOT FOUND");
 				}
 				//printf("444 : %s\n", customMsg);
-				rep=createReponse(200, customMsg);
+				
 				
 				//~ char IPDuJoueur[MAX_CHAR];
 				//~ for(int joueur=0; joueur<=nbPlayer; joueur++)
@@ -115,8 +117,10 @@ reponse_t * traiterRequest(const requete_t *req)
 				{
 					if(strcmp(req->params, usersDatas[joueur].username)==0)
 					{
-						strcpy(usersDatas[joueur].ipUser, "");
-						strcpy(usersDatas[joueur].username, "");
+						//~ strcpy(usersDatas[joueur].ipUser, "");
+						//~ strcpy(usersDatas[joueur].username, "");
+						memset(usersDatas[joueur].ipUser, 0, sizeof(usersDatas[joueur].ipUser));
+						memset(usersDatas[joueur].username, 0, sizeof(usersDatas[joueur].username));
 					}
 				}
 				rep=createReponse(200,"Je t'ai supprimé du lobby.");

@@ -204,6 +204,7 @@ void threadComServeur()
 			printf("MSG_CLIENT = %s\n", MSG_CLIENT);
 			
 			reponse=dialClientToSrv(sockDialogueServeur, MSG_CLIENT);
+			printf("---> Repose = %s\n", reponse);
 
 			if (strcmp(reponse,"ERROR NOT FOUND") == 0)
 				printf("L'utilisateur n'est pas en ligne!\n\n");
