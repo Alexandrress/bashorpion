@@ -3,8 +3,8 @@
  * \brief Fichier "BashorpionSession.c" contenant les fonctions de sessions des
  clients et du serveur. Concerne la couche 5 du modèle OSI (Session).
  * \author Alexandre.L & Nicolas.S
- * \version 3.0
- * \date 21 Janvier 2021
+ * \version 4.0
+ * \date 25 Janvier 2021
  *
 */
 
@@ -16,8 +16,8 @@
 // ************ FONCTIONS ************
 
 /**
- * \fn int sessionSrv(int portNumber)
- * \brief Permet de créer une nouvelle session pour un serveur.
+ * \fn int sessionSrv(int portNumber, int nbDeClients)
+ * \brief Permet de créer une nouvelle session pour un serveur en spécifiant le port, et le nb MAX de clients.
 */
 
 int sessionSrv(int portNumber, int nbDeClients)
@@ -118,6 +118,7 @@ void dialSrvToClient(int socketDialogue, struct sockaddr_in *adresseClient)
 
 	printf("Attente de réception d'un message...\n");
 	CHECK(recvfrom(socketDialogue, buff, MAX_CHAR, 0, (struct sockaddr *)&adresseClient, &lenClt), "Problème recv serveur ");
+	printf("Requête reçue !\n\n");
 	
 	reqClient = stringToReq(buff); //On transforme le string en requête pour traiter
 	repSrv=traiterRequest(reqClient); //On génére une réponse qu'on renvoit

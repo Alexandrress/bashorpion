@@ -4,8 +4,8 @@
  de génération de requêtes/réponses et de traitements. Concerne la couche 7 du modèle 
  OSI (Application).
  * \author Alexandre.L & Nicolas.S
- * \version 3.0
- * \date 21 Janvier 2021
+ * \version 4.0
+ * \date 25 Janvier 2021
 */
 
 
@@ -55,58 +55,61 @@ reponse_t * traiterRequest(const requete_t *req)
 	reponse_t *rep;
 	char cmd[MAX_CHAR];
 	char buffer[MAX_CHAR];
+	int i;
+	char customMsg[10000];
 	
 	switch(req->noReq)
 	{
 		case 100: //Lobby
 			if(strcmp(req->action, "GET") == 0)
 			{
-				char listeDesJoueurs[MAX_CHAR];
-				strcpy(listeDesJoueurs,"Voici les joueurs en ligne : ");
-				for(int joueur=0; joueur<=nbPlayer; joueur++)
-				{
-					strcat(listeDesJoueurs,informationDesJoueurs[joueur].username);
-					strcat(listeDesJoueurs," ");
+				sprintf(customMsg, "Voici la liste des joueurs : ");
+				for (i=0 ; i<CAPACITE_SERVER ; i++){
+					if (strcmp(usersDatas[i].username, ""))
+					{ 	
+						sprintf(customMsg, "%s - %s", customMsg, usersDatas[i].username);
+					}
 				}
-				rep=createReponse(200,listeDesJoueurs);
+				rep=createReponse(200, customMsg);
 			}
 			if(strcmp(req->action, "GETIP") == 0)
 			{
-				char IPDuJoueur[MAX_CHAR];
-				for(int joueur=0; joueur<=nbPlayer; joueur++)
+				for (i=0 ; i<CAPACITE_SERVER ; i++)
 				{
-					if(strcmp(req->params, informationDesJoueurs[joueur].username)==0)
-					{
-						strcpy(IPDuJoueur, informationDesJoueurs[joueur].ipUser);
-						rep=createReponse(200,IPDuJoueur);
+					if (!strcmp(usersDatas[i].username, req->params))
+					{	//false lorsque les 2 chaines sont identiques
+						sprintf(customMsg, "%s", usersDatas[i].ipUser);
+						
+						rep=createReponse(200, customMsg);
 						break;
 					}
-					else //On a pas trouvé le joueur
-						rep=createReponse(404,"NOT FOUND");		
+					else
+						rep=createReponse(404,"NOT FOUND");
 				}
 			}
 			if(strcmp(req->action, "DELETE") == 0)
 			{
-				for(int joueur=0; joueur<=nbPlayer; joueur++)
+				for(int joueur=0; joueur<CAPACITE_SERVER; joueur++)
 				{
-					if(strcmp(req->params, informationDesJoueurs[joueur].username)==0)
+					if(strcmp(req->params, usersDatas[joueur].username)==0)
 					{
-						strcpy(informationDesJoueurs[joueur].ipUser, "");
-						strcpy(informationDesJoueurs[joueur].username, "");
+						memset(usersDatas[joueur].ipUser, 0, sizeof(usersDatas[joueur].ipUser));
+						memset(usersDatas[joueur].username, 0, sizeof(usersDatas[joueur].username));
 					}
 				}
 				rep=createReponse(200,"Je t'ai supprimé du lobby.");
 			}
 			if(strcmp(req->action, "PUT") == 0)
 			{
-				nbPlayer++;
 				strcpy(userToAdd,req->params);
 				rep=createReponse(201,"Oui j'ai ajouté l'user à la liste.");
 			}
 			break;
+			
 		case 200: //Peer-to-peer
 			if(strcmp(req->action, "BATTLE") == 0)
 			{
+				printf("\n");
 				printf("%s veut se battre, acceptez-vous? (accept/deny)\n",req->params);
 				fgets(buffer, sizeof(buffer), stdin);
 				buffer[strlen(buffer)-1] = '\0';
@@ -187,6 +190,5 @@ char * traiterReponse(const reponse_t *rep)
 			strcat(reponse,rep->result);
 			break;
 	}
-	
 	return reponse;
 }

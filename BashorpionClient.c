@@ -2,8 +2,8 @@
  * \file BashorpionClient.c
  * \brief Programme permettant de lancer un client du projet Bashorpion.
  * \author Alexandre.L & Nicolas.S
- * \version 3.0
- * \date 21 Janvier 2021
+ * \version 4.0
+ * \date 25 Janvier 2021
  *
 */
 
@@ -23,11 +23,11 @@ void introLobby();
 
 // ******** VARIABLES GLOBALES ********
 
-struct sockaddr_in clientAdr;
 int sockDialogueServeur, sockDialoguePeerToPeer, sockConso, sockBase;
 char serverIP[MAX_CHAR];
 infoUser_t informationJoueur;
 pthread_t tid;
+struct sockaddr_in clientAdr;
 
 //Variables de jeu
 int myScore=0;
@@ -50,6 +50,10 @@ void client()
 {
 	printf("\n");
 	
+	//Ici normalement on ne devrait pas demander le port, celui de base
+	//ouvert est le PORT_CLT = 60001 pour le peer-to-peer Bashorpion, cependant
+	//comme on test en localhost on ne peut pas ouvrir deux clients avec le 
+	//port 60001. Celui défié doit être en port 60001.
 	printf("Entrez votre port de serveur à ouvrir pour accepter les duels : ");
 	scanf("%d", &informationJoueur.portIP);
 	
@@ -75,7 +79,7 @@ void client()
 	{
 		//On cancel le thread de dialogue avec le serveur lobby (mais pas la communication)
 		pthread_cancel(tid);
-		
+				
 		//On reçoit la demande et on décide si on accepte le duel ou non
 		dialSrvToClient(sockConso, &clientAdr);
 		
@@ -131,6 +135,7 @@ void threadComServeur()
 {
 	int numberOfParams=0;
 	int flagInstructions=0;
+	int flagForbidden=1;
 
 	//Permet de close le thread à partir d'un autre thread, utile en duel.
 	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
@@ -159,6 +164,15 @@ void threadComServeur()
 
 	while(1)
 	{
+		flagForbidden = 0;
+	
+		if (flagInstructions==1)
+		{
+			printf("\033[1;32m"); //Couleur verte
+			printf("%s > ", informationJoueur.username);
+			printf("\033[0m"); //Couleur blanche
+		}
+		
 		// Lit l'input du client
 		fgets(buffer, sizeof(buffer), stdin);
 		buffer[strlen(buffer)-1] = '\0';		
@@ -170,7 +184,10 @@ void threadComServeur()
 		{
 			strcpy(MSG_CLIENT,"100 GET liste");
 			reponse=dialClientToSrv(sockDialogueServeur, MSG_CLIENT);
-			printf("%s\n\n",reponse);
+			
+			char * temp = &(reponse[8]);
+
+			printf("%s\n\n",temp);
 			memset(&MSG_CLIENT, 0, MAX_CHAR);
 			memset(&reponse, 0, MAX_CHAR);
 		}
@@ -184,7 +201,8 @@ void threadComServeur()
 			memset(&MSG_CLIENT, 0, MAX_CHAR);
 			memset(&reponse, 0, MAX_CHAR);
 			
-			printf("Aurevoir! Merci d'avoir joué!\n");
+			printf("\n");
+			printf("Aurevoir! Merci d'avoir joué!\n\n");
 			
 			//Fermeture des sockets
 			CHECK(close(sockBase), "Problème close sock client 1 ");
@@ -201,17 +219,30 @@ void threadComServeur()
 			strcpy(MSG_CLIENT,"100 GETIP ");
 			strcat(MSG_CLIENT,opponentName);
 
-			reponse=dialClientToSrv(sockDialogueServeur, MSG_CLIENT);
-
-			if (strcmp(reponse,"ERROR NOT FOUND") == 0)
-				printf("L'utilisateur n'est pas en ligne!\n\n");
-			else
+			if (strcmp(informationJoueur.username,opponentName) == 0)
 			{
-				sscanf(reponse, "%s %s", code, ipToConnect);
-				pthread_create(&tid, NULL, (void*)threadPeerToPeer, ipToConnect); 
-				memset(&MSG_CLIENT, 0, MAX_CHAR);
-				memset(&reponse, 0, MAX_CHAR);
-				pthread_exit(0);
+				printf("Tu ne peux pas te défier toi même...\n\n");
+				flagForbidden = 1;
+			}
+
+			if (flagForbidden == 0)
+			{
+				reponse=dialClientToSrv(sockDialogueServeur, MSG_CLIENT);
+
+				if (strcmp(reponse,"ERROR NOT FOUND") == 0)
+				{
+					printf("L'utilisateur n'est pas en ligne!\n\n");
+					memset(&MSG_CLIENT, 0, MAX_CHAR);
+					memset(&reponse, 0, MAX_CHAR);
+				}
+				else
+				{
+					sscanf(reponse, "%s %s", code, ipToConnect);
+					pthread_create(&tid, NULL, (void*)threadPeerToPeer, ipToConnect); 
+					memset(&MSG_CLIENT, 0, MAX_CHAR);
+					memset(&reponse, 0, MAX_CHAR);
+					pthread_exit(0);
+				}
 			}
 		}
 		
@@ -250,10 +281,11 @@ void * threadPeerToPeer(char * ip)
 	printf("Envoie de l'invitation...\n");	
 	
 	sockDialoguePeerToPeer = sessionClt();
+	
 	//Port de connexion normalement constante "PORT_CLT 60001" mais comme on test 
 	//en localhost on peut pas ouvrir deux fois le port 60001, donc celui qui se fait défié
-	//doit avoir mis un port 60006
-	sockDialoguePeerToPeer = connectSrv(sockDialoguePeerToPeer, ip, 60006);
+	//doit avoir mis un port 60001
+	sockDialoguePeerToPeer = connectSrv(sockDialoguePeerToPeer, ip, PORT_CLT);
 	
 	strcpy(MSG_CLIENT,"200 BATTLE ");
 	strcat(MSG_CLIENT,informationJoueur.username);

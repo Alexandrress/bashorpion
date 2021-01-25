@@ -3,8 +3,8 @@
  * \brief Fichier "BashorpionSession.h" contenant les prototypes et structures
 des fonctions de session. Concerne la couche 5 du modèle OSI (Session).
  * \author Alexandre.L & Nicolas.S
- * \version 3.0
- * \date 21 Janvier 2021
+ * \version 4.0
+ * \date 25 Janvier 2021
 */
 
 #ifndef _SESSION_H_
@@ -19,8 +19,8 @@ des fonctions de session. Concerne la couche 5 du modèle OSI (Session).
 // ************ FONCTIONS ************
 
 /**
- * \fn int sessionSrv(int portNumber)
- * \brief Permet de créer une nouvelle session pour un serveur.
+ * \fn int sessionSrv(int portNumber, int nbDeClients)
+ * \brief Permet de créer une nouvelle session pour un serveur en spécifiant le port, et le nb MAX de clients.
 */
 
 int sessionSrv(int portNumber, int nbDeClients);
