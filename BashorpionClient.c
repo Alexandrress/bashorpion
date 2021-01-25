@@ -23,6 +23,7 @@ void introLobby();
 
 // ******** VARIABLES GLOBALES ********
 
+int flagInstructions=0;
 int sockDialogueServeur, sockDialoguePeerToPeer, sockConso, sockBase;
 char serverIP[MAX_CHAR];
 infoUser_t informationJoueur;
@@ -134,7 +135,6 @@ void client()
 void threadComServeur()
 {
 	int numberOfParams=0;
-	int flagInstructions=0;
 	int flagForbidden=1;
 
 	//Permet de close le thread à partir d'un autre thread, utile en duel.
@@ -182,7 +182,7 @@ void threadComServeur()
 		// Permet d'avoir la liste des joueurs.
 		if(strcmp(buffer, "list") == 0)
 		{
-			strcpy(MSG_CLIENT,"100 GET liste");
+			strcpy(MSG_CLIENT,"100 GET LISTE_USER");
 			reponse=dialClientToSrv(sockDialogueServeur, MSG_CLIENT);
 			
 			char * temp = &(reponse[8]);
@@ -216,7 +216,7 @@ void threadComServeur()
 		else if(strcmp(cmd, "battle") == 0 && numberOfParams > 1)
 		{ 
 			strcpy(opponentName, arg);
-			strcpy(MSG_CLIENT,"100 GETIP ");
+			strcpy(MSG_CLIENT,"100 GET ");
 			strcat(MSG_CLIENT,opponentName);
 
 			if (strcmp(informationJoueur.username,opponentName) == 0)
@@ -406,7 +406,9 @@ void playBashorpion(int socket, char * buffer, int playerID)
 	char coups[MAX_CHAR] = "";
 	
 	printf("\n\n\n");
+	printf("#######################\n");
 	printf("- LE MORPION COMMENCE -\n");
+	printf("#######################\n");
 
 	int i = 0;
 	int player = 0;
@@ -452,7 +454,7 @@ void playBashorpion(int socket, char * buffer, int playerID)
 				printf("\n");
 				printf("En attente de %s...\n", opponentName);
 				receiveClientToClient(dataSocket);
-				printf("%s a choisi %d.\n", opponentName, coup);
+				printf("\033[1;32m%s >\033[0m Je choisis la case %d.\n", opponentName, coup);
 			}
 
 			row = --coup/3;                                
@@ -492,7 +494,8 @@ void playBashorpion(int socket, char * buffer, int playerID)
 	else
 	{
 		printf("\n");
-		printf("%s gagne cette manche... Ahah t'es nul!\n", opponentName);
+		printf("L'adversaire %s gagne cette manche...\n", opponentName);
+		printf("\033[1;32m%s >\033[0m Ahah t'es nul!\n", opponentName);
 		opponentScore++;
 	}
 	
@@ -507,7 +510,7 @@ void playBashorpion(int socket, char * buffer, int playerID)
 
 	//Demander si on fait une autre partie ou non
 	printf("\n");
-	printf("Une autre partie peut-être? (accept/deny)\n");
+	printf("\033[1;32m%s >\033[0m Une autre partie peut-être? (accept/deny)\n", opponentName);
 	fgetc(stdin);
 	fgets(buffer, sizeof buffer, stdin);
 	buffer[strlen(buffer)-1] = '\0';
@@ -552,7 +555,7 @@ void intro()
 	printf("\n");
 	printf("###################################################################\n");
 	printf("                                                                   \n");
-	printf("Bienvenue sur Bashorpion! Le morpion directement dans ton bash!    \n");
+	printf("\033[0;34mX\033[0m Bienvenue sur Bashorpion! Le morpion directement dans ton bash! \033[0;31mO\033[0m\n");
 	printf("                                                                   \n");
 	printf("###################################################################\n\n");
 }

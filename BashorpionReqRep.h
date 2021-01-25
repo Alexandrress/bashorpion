@@ -112,6 +112,7 @@ char opponentName[MAX_CHAR];
 char bufferRevanche[MAX_CHAR]; 
 char userToAdd[MAX_CHAR];
 infoUser_t usersDatas[CAPACITE_SERVER]; //Tableau de structures d'infos de clients
+pthread_mutex_t mutexServeur; //Mutex pour que la ressource de usersDatas ne soit pas manipulé en mm temps.
 
 // ************ FONCTIONS ************
 

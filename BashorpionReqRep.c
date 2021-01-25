@@ -61,30 +61,37 @@ reponse_t * traiterRequest(const requete_t *req)
 	switch(req->noReq)
 	{
 		case 100: //Lobby
+		
+			pthread_mutex_lock(&mutexServeur); //On lock la ressource serveur
+			
 			if(strcmp(req->action, "GET") == 0)
 			{
-				sprintf(customMsg, "Voici la liste des joueurs : ");
-				for (i=0 ; i<CAPACITE_SERVER ; i++){
-					if (strcmp(usersDatas[i].username, ""))
-					{ 	
-						sprintf(customMsg, "%s - %s", customMsg, usersDatas[i].username);
-					}
-				}
-				rep=createReponse(200, customMsg);
-			}
-			if(strcmp(req->action, "GETIP") == 0)
-			{
-				for (i=0 ; i<CAPACITE_SERVER ; i++)
+				if (strcmp(req->params, "LISTE_USER") == 0) //Juste la liste des joueurs
 				{
-					if (!strcmp(usersDatas[i].username, req->params))
-					{	//false lorsque les 2 chaines sont identiques
-						sprintf(customMsg, "%s", usersDatas[i].ipUser);
-						
-						rep=createReponse(200, customMsg);
-						break;
+					sprintf(customMsg, "Voici la liste des joueurs : ");
+					for (i=0 ; i<CAPACITE_SERVER ; i++)
+					{
+						if (strcmp(usersDatas[i].username, ""))
+						{ 	
+							sprintf(customMsg, "%s - %s", customMsg, usersDatas[i].username);
+						}
 					}
-					else
-						rep=createReponse(404,"NOT FOUND");
+					rep=createReponse(200, customMsg);
+				}
+				else //Une IP particulière
+				{
+					for (i=0 ; i<CAPACITE_SERVER ; i++)
+					{
+						if (!strcmp(usersDatas[i].username, req->params))
+						{	//false lorsque les 2 chaines sont identiques
+							sprintf(customMsg, "%s", usersDatas[i].ipUser);
+							
+							rep=createReponse(200, customMsg);
+							break;
+						}
+						else
+							rep=createReponse(404,"NOT FOUND");
+					}
 				}
 			}
 			if(strcmp(req->action, "DELETE") == 0)
@@ -104,6 +111,9 @@ reponse_t * traiterRequest(const requete_t *req)
 				strcpy(userToAdd,req->params);
 				rep=createReponse(201,"Oui j'ai ajouté l'user à la liste.");
 			}
+			
+			pthread_mutex_unlock(&mutexServeur); //On libère la ressource serveur
+			
 			break;
 			
 		case 200: //Peer-to-peer

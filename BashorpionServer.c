@@ -45,6 +45,8 @@ void serveur()
 	//Allocation mémoire pour les threads de dialogue
 	tab_thread = (pthread_t*)malloc(CAPACITE_SERVER*sizeof(pthread_t));
 	
+	pthread_mutex_init(&mutexServeur, NULL);
+	
 	sockINET = sessionSrv(PORT_SRV, CAPACITE_SERVER);
 	
 	//Init struct infoUsers
