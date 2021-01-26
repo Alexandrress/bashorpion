@@ -95,7 +95,7 @@ int acceptClt(int sockINET, struct sockaddr_in *clientAdr)
 		
 	lenClt = sizeof(clientAdr);
 	//Attente de connexion client
-	CHECK(sd=accept(sockINET, (struct sockaddr *)&clientAdr, &lenClt), "Problème bind serveur ");
+	CHECK(sd=accept(sockINET, (struct sockaddr *)&clientAdr, &lenClt), "Problème accept serveur ");
 	return sd;
 }
 
@@ -155,7 +155,7 @@ char * dialClientToSrv(int sockINET, const char * MSG)
 	sendRequete(sockINET, reqClient);
 
 	lenSockAdr = sizeof(sockAdr);
-	CHECK(getsockname(sockINET, (struct sockaddr *)&sockAdr, &lenSockAdr),"Problème getsockname()");
+	CHECK(getsockname(sockINET, (struct sockaddr *)&sockAdr, &lenSockAdr),"Problème getsockname() ");
 	
 	//Attente d'une réponse
 	memset(buff, 0, MAX_CHAR);
@@ -241,6 +241,6 @@ int sendReponse(const int sock, const reponse_t *rep)
 	
 	//Envoi d'un message à un destinataire
 	//printf("Envoi du message INET suivant %s\n",msg);
-	CHECK(send(sock, msg, strlen(msg) + 1, 0), "Problème send du client ");
+	CHECK(send(sock, msg, strlen(msg) + 1, 0), "Problème send du serveur ");
 	return(0);
 }

@@ -51,6 +51,9 @@ void client()
 {
 	printf("\n");
 	
+	//Ce username n'est pas autorisé car utilisé dans le GET pour "list"
+	strcpy(informationJoueur.username,"LISTE_USER");
+	
 	//Ici normalement on ne devrait pas demander le port, celui de base
 	//ouvert est le PORT_CLT = 60001 pour le peer-to-peer Bashorpion, cependant
 	//comme on test en localhost on ne peut pas ouvrir deux clients avec le 
@@ -61,8 +64,12 @@ void client()
 	printf("Entrez l'adresse du serveur du lobby Bashorpion à rejoindre : ");
 	scanf("%s", serverIP);
 	
-	printf("Entrez votre username pour rejoindre le serveur : ");
-	scanf("%s", informationJoueur.username);
+	//On redemande le pseudo tant qu'il n'a pas choisi un autre username que "LISTE_USER"
+	while(strcmp(informationJoueur.username,"LISTE_USER")==0)
+	{
+		printf("Entrez votre username pour rejoindre le serveur : ");
+		scanf("%s", informationJoueur.username);
+	}
 	
 	printf("\n");
 
