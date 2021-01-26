@@ -45,6 +45,8 @@ void serveur()
 	//Allocation mémoire pour les threads de dialogue
 	tab_thread = (pthread_t*)malloc(CAPACITE_SERVER*sizeof(pthread_t));
 	
+	pthread_mutex_init(&mutexServeur, NULL);
+	
 	sockINET = sessionSrv(PORT_SRV, CAPACITE_SERVER);
 	
 	//Init struct infoUsers
@@ -145,9 +147,19 @@ void printAffichageUsers()
 }
 
 int main()
-{
+{    
+	// Si la plateforme est Windows
+    #if defined (WIN32)
+        WSADATA WSAData;
+        WSAStartup(MAKEWORD(2,2), &WSAData);
+    #endif
+    
 	serveur();
 	printf("Fin d'application.\n");
+	
+	#if defined (WIN32)
+        WSACleanup();
+    #endif
 	
 	return 0;
 }
