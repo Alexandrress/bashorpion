@@ -4,8 +4,8 @@
  de génération de requêtes/réponses et de traitements. Concerne la couche 7 du modèle 
  OSI (Application).
  * \author Alexandre.L & Nicolas.S
- * \version 3.0
- * \date 21 Janvier 2021
+ * \version 4.0
+ * \date 25 Janvier 2021
 */
 
 
@@ -61,67 +61,45 @@ reponse_t * traiterRequest(const requete_t *req)
 	switch(req->noReq)
 	{
 		case 100: //Lobby
+		
+			pthread_mutex_lock(&mutexServeur); //On lock la ressource serveur
+			
 			if(strcmp(req->action, "GET") == 0)
 			{
-				printf("GET\n");
-				
-				sprintf(customMsg, "Voici la liste des joueurs : ");
-				for (i=0 ; i<CAPACITE_SERVER ; i++){
-					if (strcmp(usersDatas[i].username, "")){ 
-						
-						//printf("Utilisateur trouvé !! --> %s\n", usersDatas[i].username);
-						sprintf(customMsg, "%s - %s", customMsg, usersDatas[i].username);
-						
+				if (strcmp(req->params, "LISTE_USER") == 0) //Juste la liste des joueurs
+				{
+					sprintf(customMsg, "Voici la liste des joueurs : ");
+					for (i=0 ; i<CAPACITE_SERVER ; i++)
+					{
+						if (strcmp(usersDatas[i].username, ""))
+						{ 	
+							sprintf(customMsg, "%s - %s", customMsg, usersDatas[i].username);
+						}
+					}
+					rep=createReponse(200, customMsg);
+				}
+				else //Une IP particulière
+				{
+					for (i=0 ; i<CAPACITE_SERVER ; i++)
+					{
+						if (!strcmp(usersDatas[i].username, req->params))
+						{	//false lorsque les 2 chaines sont identiques
+							sprintf(customMsg, "%s", usersDatas[i].ipUser);
+							
+							rep=createReponse(200, customMsg);
+							break;
+						}
+						else
+							rep=createReponse(404,"NOT FOUND");
 					}
 				}
-				printf("444 : %s\n", customMsg);
-				rep=createReponse(200, customMsg);
-				printf("555\n");
-			}
-			if(strcmp(req->action, "GETIP") == 0)
-			{
-				printf("GETIP\n");
-				
-				for (i=0 ; i<CAPACITE_SERVER ; i++){
-					if (!strcmp(usersDatas[i].username, req->params)){	//false lorsque les 2 chaines sont identiques
-						printf("Joueur trouvé ! \n");
-						printf("Voici l'IP du joueur demandé : %s -> %s\n", usersDatas[i].username, usersDatas[i].ipUser);
-						sprintf(customMsg, "%s", usersDatas[i].ipUser);
-						
-						rep=createReponse(200, customMsg);
-						break;
-					}
-					else
-						rep=createReponse(404,"NOT FOUND");
-				}
-				//printf("444 : %s\n", customMsg);
-				
-				
-				//~ char IPDuJoueur[MAX_CHAR];
-				//~ for(int joueur=0; joueur<=nbPlayer; joueur++)
-				//~ {
-					//~ if(strcmp(req->params, usersDatas[joueur].username)==0)
-					//~ {
-						//~ strcpy(IPDuJoueur, usersDatas[joueur].ipUser);
-						//~ rep=createReponse(200,IPDuJoueur);
-						//~ break;
-					//~ }
-					//~ else //On a pas trouvé le joueur
-						//~ rep=createReponse(404,"NOT FOUND");		
-				//~ }
 			}
 			if(strcmp(req->action, "DELETE") == 0)
 			{
-				printf("DELETE\n");
 				for(int joueur=0; joueur<CAPACITE_SERVER; joueur++)
 				{
 					if(strcmp(req->params, usersDatas[joueur].username)==0)
 					{
-						printf("Suppression des infos de %s : \n");
-						
-						//~ strcpy(usersDatas[joueur].ipUser, "");
-						//~ strcpy(usersDatas[joueur].username, "");
-						printf("- ipUser = >%s<\n- username = >%s<\n", usersDatas[joueur].ipUser, usersDatas[joueur].username);
 						memset(usersDatas[joueur].ipUser, 0, sizeof(usersDatas[joueur].ipUser));
 						memset(usersDatas[joueur].username, 0, sizeof(usersDatas[joueur].username));
 					}
@@ -130,25 +108,18 @@ reponse_t * traiterRequest(const requete_t *req)
 			}
 			if(strcmp(req->action, "PUT") == 0)
 			{
-				printf("PUT\n");
-				//printf("params : >%s< -  username : %s><", req->params, usersDatas[0].username);
-				//while (strcmp(usersDatas[i].username, req->params)) i++; //True tant que usersDatas[i].username n'est pas vide
-				//printf("params = %s\n", req->params);
-				
-				//~ strcpy(usersDatas[i].username,req->params);
-				//printf("User ajouté à la liste sur le slot %d : \n", i);
-				//printf("- username = %s\n - portIP = %ld\n- ipUser = %s\n", usersDatas[i].username, usersDatas[i].portIP, usersDatas[i].ipUser);
-				//printf("- username = %s\n", usersDatas[i].username);
-				
-				//nbPlayer++;
 				strcpy(userToAdd,req->params);
-				//printf("- username = %s\n - portIP = %d\n- ipUser = %s\n", usersDatas[i].username, usersDatas[i].portIP, usersDatas[i].ipUser);
 				rep=createReponse(201,"Oui j'ai ajouté l'user à la liste.");
 			}
+			
+			pthread_mutex_unlock(&mutexServeur); //On libère la ressource serveur
+			
 			break;
+			
 		case 200: //Peer-to-peer
 			if(strcmp(req->action, "BATTLE") == 0)
 			{
+				printf("\n");
 				printf("%s veut se battre, acceptez-vous? (accept/deny)\n",req->params);
 				fgets(buffer, sizeof(buffer), stdin);
 				buffer[strlen(buffer)-1] = '\0';
@@ -229,6 +200,6 @@ char * traiterReponse(const reponse_t *rep)
 			strcat(reponse,rep->result);
 			break;
 	}
-	
 	return reponse;
 }
+

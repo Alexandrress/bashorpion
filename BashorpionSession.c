@@ -3,8 +3,8 @@
  * \brief Fichier "BashorpionSession.c" contenant les fonctions de sessions des
  clients et du serveur. Concerne la couche 5 du modèle OSI (Session).
  * \author Alexandre.L & Nicolas.S
- * \version 3.0
- * \date 21 Janvier 2021
+ * \version 4.0
+ * \date 25 Janvier 2021
  *
 */
 
@@ -16,8 +16,8 @@
 // ************ FONCTIONS ************
 
 /**
- * \fn int sessionSrv(int portNumber)
- * \brief Permet de créer une nouvelle session pour un serveur.
+ * \fn int sessionSrv(int portNumber, int nbDeClients)
+ * \brief Permet de créer une nouvelle session pour un serveur en spécifiant le port, et le nb MAX de clients.
 */
 
 int sessionSrv(int portNumber, int nbDeClients)
@@ -95,7 +95,7 @@ int acceptClt(int sockINET, struct sockaddr_in *clientAdr)
 		
 	lenClt = sizeof(clientAdr);
 	//Attente de connexion client
-	CHECK(sd=accept(sockINET, (struct sockaddr *)&clientAdr, &lenClt), "Problème bind serveur ");
+	CHECK(sd=accept(sockINET, (struct sockaddr *)&clientAdr, &lenClt), "Problème accept serveur ");
 	return sd;
 }
 
@@ -118,14 +118,12 @@ void dialSrvToClient(int socketDialogue, struct sockaddr_in *adresseClient)
 
 	printf("Attente de réception d'un message...\n");
 	CHECK(recvfrom(socketDialogue, buff, MAX_CHAR, 0, (struct sockaddr *)&adresseClient, &lenClt), "Problème recv serveur ");
-	printf("Requête reçue !\n");
+	printf("Requête reçue !\n\n");
 	
 	reqClient = stringToReq(buff); //On transforme le string en requête pour traiter
-	printf("Mark 1\n");
 	repSrv=traiterRequest(reqClient); //On génére une réponse qu'on renvoit
-	printf("Mark 2\n");
+	
 	sendReponse(socketDialogue, repSrv);
-	printf("Mark 3\n");
 }
 
 
@@ -157,7 +155,7 @@ char * dialClientToSrv(int sockINET, const char * MSG)
 	sendRequete(sockINET, reqClient);
 
 	lenSockAdr = sizeof(sockAdr);
-	CHECK(getsockname(sockINET, (struct sockaddr *)&sockAdr, &lenSockAdr),"Problème getsockname()");
+	CHECK(getsockname(sockINET, (struct sockaddr *)&sockAdr, &lenSockAdr),"Problème getsockname() ");
 	
 	//Attente d'une réponse
 	memset(buff, 0, MAX_CHAR);
@@ -240,12 +238,10 @@ int sendReponse(const int sock, const reponse_t *rep)
 {
 	message_t msg;
 	repToString(rep, msg);
-	printf("AAA\n");
+	
 	//Envoi d'un message à un destinataire
 	//printf("Envoi du message INET suivant %s\n",msg);
-	printf("Infos du send : \n- sock = %d\n - msg = %s\n - len = %ld\n", sock, msg, strlen(msg));
-	
-	CHECK(send(sock, msg, strlen(msg) + 1, 0), "Problème send du client ");
-	printf("BBB\n");
+	CHECK(send(sock, msg, strlen(msg) + 1, 0), "Problème send du serveur ");
 	return(0);
 }
+

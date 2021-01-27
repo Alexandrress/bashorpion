@@ -4,8 +4,8 @@
  de génération de requêtes/réponses et de traitements. Concerne la couche 7 du modèle 
  OSI (Application).
  * \author Alexandre.L & Nicolas.S
- * \version 3.0
- * \date 21 Janvier 2021
+ * \version 4.0
+ * \date 25 Janvier 2021
 */
 
 
@@ -14,16 +14,37 @@
 #ifndef _REQREP_H_
 #define _REQREP_H_
 
-#include <unistd.h>
-#include <stdlib.h>
-#include <stdio.h> 
-#include <sys/socket.h>
+//Si nous sommes sous Windows
+#if defined (WIN32)
+
+	#include <ws2tcpip.h>
+    #include <winsock2.h>
+    typedef int socklen_t;
+
+// Sinon, si nous sommes sous Linux
+#elif defined (linux)
+
+    #include <sys/types.h>
+    #include <sys/socket.h>
+    #include <sys/wait.h>
+    #include <netinet/in.h>
+    #include <arpa/inet.h>
+    #include <unistd.h>
+
+    #define INVALID_SOCKET -1
+    #define SOCKET_ERROR -1
+    #define closesocket(s) close (s)
+
+    typedef int SOCKET;
+    typedef struct sockaddr_in SOCKADDR_IN;
+    typedef struct sockaddr SOCKADDR;
+    
+#endif
+
+// On inclut les fichiers standards
+#include <stdio.h>
+#include <stdlib.h> 
 #include <string.h>
-#include <errno.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <signal.h>
-#include <sys/wait.h>
 #include <pthread.h>
 
 
@@ -58,13 +79,12 @@ typedef char message_t[MAX_CHAR];
 
 typedef char action_t[MAX_CHAR];
 
-
 /**
  * \struct infoUser_t
  * \brief Objet Information Users.
  *
  * infoUser_t est une structure permettant de spécifier l'username d'un joueur 
- ainsi que son IP associé.
+ ainsi que son IP associé et le port.
 */
 
 typedef struct
@@ -73,7 +93,6 @@ typedef struct
 	char ipUser[MAX_CHAR];
 	int portIP;
 } infoUser_t;
-
 
 
 /**
@@ -113,9 +132,8 @@ int hasAcceptedDuel;
 char opponentName[MAX_CHAR];
 char bufferRevanche[MAX_CHAR]; 
 char userToAdd[MAX_CHAR];
-int nbPlayer;
 infoUser_t usersDatas[CAPACITE_SERVER]; //Tableau de structures d'infos de clients
-//~ infoUser_t informationDesJoueurs[6]; //nbmaxclients
+pthread_mutex_t mutexServeur; //Mutex pour que la ressource de usersDatas ne soit pas manipulé en mm temps.
 
 // ************ FONCTIONS ************
 
@@ -154,3 +172,4 @@ char * traiterReponse(const reponse_t *rep);
 
 
 #endif
+
