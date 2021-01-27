@@ -199,6 +199,19 @@ void threadComServeur()
 			memset(&reponse, 0, MAX_CHAR);
 		}
 		
+		// Permet d'avoir le leaderboard des joueurs
+		if(strcmp(buffer, "leaderboard") == 0)
+		{
+			strcpy(MSG_CLIENT,"100 GET LEADERBOARD");
+			reponse=dialClientToSrv(sockDialogueServeur, MSG_CLIENT);
+			
+			char * temp = &(reponse[8]);
+
+			printf("%s\n\n",temp);
+			memset(&MSG_CLIENT, 0, MAX_CHAR);
+			memset(&reponse, 0, MAX_CHAR);
+		}
+		
 		// Permet de quitter le serveur et de fermer la socket de dialogue.
 		else if(strcmp(buffer, "leave") == 0)
 		{
@@ -263,7 +276,7 @@ void threadComServeur()
 			else
 			{
 				printf("\n\n");
-				printf("Commandes: \n\n - list\n - battle <nomDuJoueur>\n - accept\n - deny\n - leave\n\n");
+				printf("Commandes: \n\n - list\n - battle <nomDuJoueur>\n - leaderboard\n - accept\n - deny\n - leave\n\n");
 			}
 		}
 	}
@@ -499,6 +512,21 @@ void playBashorpion(int socket, char * buffer, int playerID)
 		printf("\n");
 		printf("BRAVO CHAMPION! %s TU AS GAGNE!\n", informationJoueur.username);
 		myScore++;
+		
+		//Le score est également mis à jour dans la structure du leaderboard
+		//Pour cela on envoie une requête au serveur
+		/*strcpy(MSG_CLIENT,"100 PUT");
+		sprintf(MSG_CLIENT, "%s %s", MSG_CLIENT, informationJoueur.username);
+		
+		reponse=dialClientToSrv(sockDialogueServeur, MSG_CLIENT);
+		printf("eeeeeee : %s\n", reponse);
+		
+		char * temp = &(reponse[8]);
+
+		printf("%s\n\n",temp);
+		memset(&MSG_CLIENT, 0, MAX_CHAR);
+		memset(&reponse, 0, MAX_CHAR);*/
+		
 	}
 	else
 	{
@@ -583,7 +611,7 @@ void introLobby()
 	printf("Bienvenue dans le lobby Bashorpion!                                \n");
 	printf("###################################################################\n");
 	printf("\n\n");
-	printf("Commandes: \n\n - list\n - battle <nomDuJoueur>\n - accept\n - deny\n - leave\n\n");
+	printf("Commandes: \n\n - list\n - battle <nomDuJoueur>\n - leaderboard\n - accept\n - deny\n - leave\n\n");
 }
 
 

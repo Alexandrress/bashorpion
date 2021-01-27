@@ -103,7 +103,7 @@ void initServer(void){
 	
 	//Au démarrage, s'il n'existe pas, le serveur crée le fichier de leaderboard.
 	//Sinon il le charge dans le tableau de structures score_t dédiée : leaderBoard
-	ficScores = fopen("./datas/leaderBoard_2.txt", "rw");
+	ficScores = fopen("./datas/leaderBoard.json", "rw");
 	if (ficScores != NULL){
 		printf("Fichier accessible --> lecture du fichier\n");
 		
@@ -118,20 +118,26 @@ void initServer(void){
 		nbJoueurs = json_object_array_length(users);
 		printf("-- Il y a %ld utilisateurs enregistrés\n", nbJoueurs);
 		
-		printf("\n\n");
-		
 		for (i=0 ; i<(int)nbJoueurs ; i++){
 			user = json_object_array_get_idx(users, i);
 			printf("Utilisateur N°%d : \n", i+1);
 			json_object_object_get_ex(user, "pseudo", &pseudo);
 			json_object_object_get_ex(user, "score", &score);
 			json_object_object_get_ex(user, "ip", &ip);
-			printf("- Pseudo : %s\n- Score : %s\n- Ip : %s\n", json_object_get_string(pseudo), json_object_get_string(score), json_object_get_string(ip));
+			
+			//Chargement dans la structure de sonnées prévue à cet effet
+			strcpy(leaderBoard[i].username, json_object_get_string(pseudo));
+			strcpy(leaderBoard[i].ipUser, json_object_get_string(ip));
+			leaderBoard[i].nbVictoires = json_object_get_int(score);
+			
+			printf("- Pseudo : %s\n- Score : %d\n- Ip : %s\n", leaderBoard[i].username, leaderBoard[i].nbVictoires, leaderBoard[i].ipUser);
 			printf("\n");
 		}
 		
 	}else {
-		printf("Fichier indisponible --> Création du fichier\n");
+		printf("Fichier indisponible --> Création du fichier... ");
+		system("touch ./datas/leaderBoard.json");
+		printf("Fichier créé avec succès\n");
 	}
 	
 }

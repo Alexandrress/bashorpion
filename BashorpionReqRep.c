@@ -55,8 +55,10 @@ reponse_t * traiterRequest(const requete_t *req)
 	reponse_t *rep;
 	char cmd[MAX_CHAR];
 	char buffer[MAX_CHAR];
-	int i;
+	int i/*, j, trouve*/;
 	char customMsg[10000];
+	char saveLeaderboard[1000];
+	FILE * fp; //Pointeur sur le fichier json de leaderboard
 	
 	switch(req->noReq)
 	{
@@ -93,6 +95,16 @@ reponse_t * traiterRequest(const requete_t *req)
 							rep=createReponse(404,"NOT FOUND");
 					}
 				}
+				if (strcmp(req->params, "LEADERBOARD") == 0) //Le leaderboard
+				{
+					
+					sprintf(customMsg, "Voici le leaderBoard des joueurs : ");
+					for (i=0 ; strcmp(leaderBoard[i].username, ""); i++){
+						sprintf(customMsg, "%s | %s - %d victoires", customMsg, leaderBoard[i].username, leaderBoard[i].nbVictoires);
+						printf("%s - %d victoires\n", leaderBoard[i].username, leaderBoard[i].nbVictoires);
+					}
+					rep=createReponse(200, customMsg);
+				}
 			}
 			if(strcmp(req->action, "DELETE") == 0)
 			{
@@ -104,12 +116,58 @@ reponse_t * traiterRequest(const requete_t *req)
 						memset(usersDatas[joueur].username, 0, sizeof(usersDatas[joueur].username));
 					}
 				}
+				
+				//On met à jour le fichier de sauvegarde des scores
+				sprintf(saveLeaderboard, "{\"users\": [\n\t");
+				for (i=0 ; strcmp(leaderBoard[i].username, ""); i++){
+					sprintf(saveLeaderboard, "%s{ \"ip\": \"%s\", \"pseudo\": \"%s\", \"score\": \"%d\" },\n\t"
+									, saveLeaderboard, leaderBoard[i].ipUser, leaderBoard[i].username, leaderBoard[i].nbVictoires);
+				}
+				sprintf(saveLeaderboard, "%s]}", saveLeaderboard);
+				system("rm ./datas/leaderBoard.json ; touch ./leaderBoard.json");
+				fp = fopen("./datas/leaderBoard.json", "w");
+				if (fp != NULL){
+					fprintf(fp, "%s", saveLeaderboard);
+					fclose(fp);
+				}else {
+					printf("Noooo\n");
+				}
+				
+				printf("Mise à jour confirmée\n");
+				
 				rep=createReponse(200,"Je t'ai supprimé du lobby.");
+				
 			}
 			if(strcmp(req->action, "PUT") == 0)
 			{
-				strcpy(userToAdd,req->params);
-				rep=createReponse(201,"Oui j'ai ajouté l'user à la liste.");
+				if (strcmp(req->params, "SCORE") == 0){
+					printf("On essaie d'insérer un score !!!\n");
+					
+					
+					/*trouve=0;
+					for (j=0 ; j<MAX_ENREGISTREMENTS && !strcmp(leaderBoard[j].username, "") ; j++){
+						if (!strcmp(leaderBoard[j].username, informationJoueur.username)){
+							leaderBoard[j].nbVictoires++;
+							trouve=1;
+							printf("Score inséré : Le score de %s est mtn de %s\n", leaderBoard[j].username, leaderBoard[j].nbVictoires);
+							break;
+						}
+					}
+					
+					if (trouve == 0){	//Si le joueur n'est pas dans le leaderboard, on l'y ajoute
+						strcpy(leaderBoard[j].username, informationJoueur.username);
+						strcpy(leaderBoard[j].ipUser, informationJoueur.ipUser);
+						leaderBoard[j].nbVictoires = 1
+						printf("Score inséré : Le score de %s est mtn de %d\n", leaderBoard[j].username, leaderBoard[j].nbVictoires);
+					}*/
+					
+					
+					
+					
+				}else {
+					strcpy(userToAdd,req->params);
+					rep=createReponse(201,"Oui j'ai ajouté l'user à la liste.");
+				}
 			}
 			
 			pthread_mutex_unlock(&mutexServeur); //On libère la ressource serveur

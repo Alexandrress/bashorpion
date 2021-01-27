@@ -172,6 +172,7 @@ reponse_t * createReponse(short no, const message_t resultat);
 reponse_t * traiterRequest(const requete_t *req);
 
 
+
 /**
  * \fn char * traiterReponse(const reponse_t *rep)
  * \brief Permet de traiter la réponse passé en paramètre, renvoie une chaine de caractère pour 
