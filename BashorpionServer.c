@@ -43,6 +43,7 @@ void serveur()
 	int sd, i;
 	pthread_t *tab_thread; //tableau de Threads de dialogue
 	
+	
 	//Allocation mémoire pour les threads de dialogue
 	tab_thread = (pthread_t*)malloc(CAPACITE_SERVER*sizeof(pthread_t));
 	
@@ -78,6 +79,20 @@ void serveur()
 void initServer(void){
 	
 	int i;
+	FILE * ficScores;
+	char buffer[1024];
+	
+	struct json_object *parsed_json;
+	struct json_object *ip;
+	struct json_object *pseudo;
+	struct json_object *score;
+	struct json_object *users;
+	struct json_object *user;
+	
+	size_t nbJoueurs;
+	
+	//strcpy(buff1, "aa");
+	
 	//Init struct infoUsers
 	for (i=0 ; i < CAPACITE_SERVER ; i++)
 	{
@@ -87,7 +102,37 @@ void initServer(void){
 	}
 	
 	//Au démarrage, s'il n'existe pas, le serveur crée le fichier de leaderboard.
-	//Sinon il le charge
+	//Sinon il le charge dans le tableau de structures score_t dédiée : leaderBoard
+	ficScores = fopen("./datas/leaderBoard_2.txt", "rw");
+	if (ficScores != NULL){
+		printf("Fichier accessible --> lecture du fichier\n");
+		
+		fread(buffer, 1024, 1, ficScores);
+		fclose(ficScores);
+		
+		parsed_json = json_tokener_parse(buffer);
+		
+		
+		
+		json_object_object_get_ex(parsed_json, "users", &users);
+		nbJoueurs = json_object_array_length(users);
+		printf("-- Il y a %ld utilisateurs enregistrés\n", nbJoueurs);
+		
+		printf("\n\n");
+		
+		for (i=0 ; i<(int)nbJoueurs ; i++){
+			user = json_object_array_get_idx(users, i);
+			printf("Utilisateur N°%d : \n", i+1);
+			json_object_object_get_ex(user, "pseudo", &pseudo);
+			json_object_object_get_ex(user, "score", &score);
+			json_object_object_get_ex(user, "ip", &ip);
+			printf("- Pseudo : %s\n- Score : %s\n- Ip : %s\n", json_object_get_string(pseudo), json_object_get_string(score), json_object_get_string(ip));
+			printf("\n");
+		}
+		
+	}else {
+		printf("Fichier indisponible --> Création du fichier\n");
+	}
 	
 }
 

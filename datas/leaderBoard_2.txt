@@ -1,0 +1,8 @@
+{
+	"users": [
+		{ "ip": "127.0.0.2", "pseudo": "Fisti", "score": "5" },
+		{ "ip": "127.0.0.5", "pseudo": "Faloute", "score": "22"},
+		{ "ip": "127.0.0.8", "pseudo": "Alex", "score": "25"},
+		{ "ip": "127.0.0.9", "pseudo": "Json", "score": "58"}
+	]
+}

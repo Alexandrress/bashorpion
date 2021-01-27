@@ -30,6 +30,7 @@
     #include <netinet/in.h>
     #include <arpa/inet.h>
     #include <unistd.h>
+    #include <json-c/json.h>
 
     #define INVALID_SOCKET -1
     #define SOCKET_ERROR -1
@@ -55,6 +56,7 @@
 #define PORT_SRV		60002 //doit être > à 1023 et exclure les ports assigned services dans more /etc/services
 #define ADDR_SRV		"127.0.0.1"
 #define CAPACITE_SERVER 10 	//Capacité maximmale du server
+#define MAX_ENREGISTREMENTS 70	//Capacité maximum d'enregistrements disponibles pour le leaderboard (nb max de joueurs différents)
 	
 
 
@@ -76,7 +78,6 @@ bien exécuter. Renvoie le message passé en paramètre en cas d'erreur.
 // ************ STRUCTURES ************
 
 typedef char message_t[MAX_CHAR];
-
 typedef char action_t[MAX_CHAR];
 
 /**
@@ -125,6 +126,14 @@ typedef struct {
 } reponse_t;
 
 
+
+typedef struct {
+	char ipUser[MAX_CHAR];
+	char username[MAX_CHAR];
+	int nbVictoires;
+} score_t;
+
+
 // ******** VARIABLES GLOBALES ********
 
 int coup;
@@ -132,8 +141,9 @@ int hasAcceptedDuel;
 char opponentName[MAX_CHAR];
 char bufferRevanche[MAX_CHAR]; 
 char userToAdd[MAX_CHAR];
+score_t leaderBoard[MAX_ENREGISTREMENTS];
 infoUser_t usersDatas[CAPACITE_SERVER]; //Tableau de structures d'infos de clients
-pthread_mutex_t mutexServeur; //Mutex pour que la ressource de usersDatas ne soit pas manipulé en mm temps.
+pthread_mutex_t mutexServeur; //Mutex pour que la ressource de usersDatas ne soit pas manipulée en mm temps.
 
 // ************ FONCTIONS ************
 
