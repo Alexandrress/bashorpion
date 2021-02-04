@@ -173,6 +173,7 @@ void * threadLobbyServer(void * socketDialogue)
 
 	//Remplissage de la structure d'infos utilisateurs
 	strcpy(usersDatas[i].ipUser, ipDuJoueur);
+	printf("STOCKE!!\n");
 	strcpy(usersDatas[i].username, userToAdd);
 	
 	printf("\n");

@@ -425,6 +425,7 @@ void playBashorpion(int socket, char * buffer, int playerID)
 	char MSG_CLIENT[MAX_CHAR] = "";
 	//Pour stocker les coups user
 	char coups[MAX_CHAR] = "";
+	char reponse[50];
 	
 	system("clear");
 	printf("\n\n\n");
@@ -515,17 +516,13 @@ void playBashorpion(int socket, char * buffer, int playerID)
 		
 		//Le score est également mis à jour dans la structure du leaderboard
 		//Pour cela on envoie une requête au serveur
-		/*strcpy(MSG_CLIENT,"100 PUT");
-		sprintf(MSG_CLIENT, "%s %s", MSG_CLIENT, informationJoueur.username);
-		
-		reponse=dialClientToSrv(sockDialogueServeur, MSG_CLIENT);
-		printf("eeeeeee : %s\n", reponse);
-		
-		char * temp = &(reponse[8]);
+		strcpy(informationJoueur.ipUser, inet_ntoa(clientAdr.sin_addr));
+		printf("Adresse IP : >%s<\n", informationJoueur.ipUser);
+		sprintf(MSG_CLIENT, "101 PUT %s:%s", informationJoueur.username, informationJoueur.ipUser);
 
-		printf("%s\n\n",temp);
-		memset(&MSG_CLIENT, 0, MAX_CHAR);
-		memset(&reponse, 0, MAX_CHAR);*/
+		printf("MSG_CLIENT : %s\n", MSG_CLIENT);
+		
+		strcpy(reponse, dialClientToSrv(sockDialogueServeur, MSG_CLIENT));
 		
 	}
 	else

@@ -55,7 +55,9 @@ reponse_t * traiterRequest(const requete_t *req)
 	reponse_t *rep;
 	char cmd[MAX_CHAR];
 	char buffer[MAX_CHAR];
-	int i/*, j, trouve*/;
+	char userName[50];
+	char ipUser[20];
+	int i/*, j*/, trouve;
 	char customMsg[10000];
 	char saveLeaderboard[1000];
 	FILE * fp; //Pointeur sur le fichier json de leaderboard
@@ -140,39 +142,44 @@ reponse_t * traiterRequest(const requete_t *req)
 			}
 			if(strcmp(req->action, "PUT") == 0)
 			{
-				if (strcmp(req->params, "SCORE") == 0){
-					printf("On essaie d'insérer un score !!!\n");
-					
-					
-					/*trouve=0;
-					for (j=0 ; j<MAX_ENREGISTREMENTS && !strcmp(leaderBoard[j].username, "") ; j++){
-						if (!strcmp(leaderBoard[j].username, informationJoueur.username)){
-							leaderBoard[j].nbVictoires++;
-							trouve=1;
-							printf("Score inséré : Le score de %s est mtn de %s\n", leaderBoard[j].username, leaderBoard[j].nbVictoires);
-							break;
-						}
-					}
-					
-					if (trouve == 0){	//Si le joueur n'est pas dans le leaderboard, on l'y ajoute
-						strcpy(leaderBoard[j].username, informationJoueur.username);
-						strcpy(leaderBoard[j].ipUser, informationJoueur.ipUser);
-						leaderBoard[j].nbVictoires = 1
-						printf("Score inséré : Le score de %s est mtn de %d\n", leaderBoard[j].username, leaderBoard[j].nbVictoires);
-					}*/
-					
-					
-					
-					
-				}else {
-					strcpy(userToAdd,req->params);
-					rep=createReponse(201,"Oui j'ai ajouté l'user à la liste.");
-				}
+				strcpy(userToAdd,req->params);
+				rep=createReponse(201,"Oui j'ai ajouté l'user à la liste.");
 			}
 			
 			pthread_mutex_unlock(&mutexServeur); //On libère la ressource serveur
 			
 			break;
+			
+		case 101:
+			if(strcmp(req->action, "PUT") == 0){
+				//Demande de mise à jour du tableau des scores
+				
+				//On commence par récupérer les informations dans la chaine de paramètres
+				printf("params : %s", req->params);
+				strcpy(userName, strtok(req->params, ":"));
+				strcpy(ipUser, strtok(NULL, ":"));
+				//sscanf(req->params, "%s;%s", , );
+				printf("Info récupérées : username=>%s< ; ipUser=>%s<", userName, ipUser);
+				
+				//On parcourt la liste des utilisateurs classés dans le leaderboard
+				//et on incrémentele score du joueur cible
+				//Si le joueur n'est pas trouvé, on lui crée un emplacement.
+				trouve=0;
+				for (i=0 ; strcmp(leaderBoard[i].username, "") && trouve == 0; i++){
+					if (!(strcmp(leaderBoard[i].username, req->params))){
+						trouve=1;
+						leaderBoard[i].nbVictoires++;
+						printf("Je t'ai trouvé, j'incrémente ton score à %d\n", leaderBoard[i].nbVictoires);
+					}
+				}
+				if (trouve == 0){
+					printf("Je ne t'ai pas trouvé, tu es nouveau : Je te crée un emplacement!\n");
+					strcpy(leaderBoard[i].username, req->params);
+					leaderBoard[i].nbVictoires=1;
+					strcpy(leaderBoard[i].ipUser,"127.0.0.1");
+				}
+			}
+		break;
 			
 		case 200: //Peer-to-peer
 			if(strcmp(req->action, "BATTLE") == 0)
