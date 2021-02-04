@@ -184,7 +184,9 @@ void threadComServeur()
 		fgets(buffer, sizeof(buffer), stdin);
 		buffer[strlen(buffer)-1] = '\0';		
 		char cmd[MAX_CHAR], arg[MAX_CHAR];
+		char affichage[20];
 		numberOfParams=sscanf(buffer, "%s %s", cmd, arg);
+		char * PtrCh;
 		
 		// Permet d'avoir la liste des joueurs.
 		if(strcmp(buffer, "list") == 0)
@@ -193,10 +195,29 @@ void threadComServeur()
 			reponse=dialClientToSrv(sockDialogueServeur, MSG_CLIENT);
 			
 			char * temp = &(reponse[8]);
-
-			printf("%s\n\n",temp);
+			//printf("Reponse : %s\n", temp);
+			
+			printf("\t\t-----------------  utilisateurs en ligne  -----------------\n");
+			strcpy(affichage, strtok(temp, ":"));
+			printf("\t\t\t- %s\n", affichage);
+			while (strcmp(affichage, "")){
+				
+				memset(affichage, 0, sizeof(affichage));
+				//PrtCh permet de tester si le résultat renvoyé par  strTok n'est pas nul avant de l'affecter à affichage
+				PtrCh=NULL;
+				PtrCh = strtok(NULL, ":");
+				if (PtrCh == NULL) {
+					printf("\t\t-----------------  Fin de la liste  -----------------\n");
+					break;
+				}else {
+					strcpy(affichage, PtrCh);
+					printf("\t\t\t- %s\n", affichage);
+				}
+			}
+			
 			memset(&MSG_CLIENT, 0, MAX_CHAR);
 			memset(&reponse, 0, MAX_CHAR);
+			memset(&temp, 0, sizeof(temp));
 		}
 		
 		// Permet d'avoir le leaderboard des joueurs

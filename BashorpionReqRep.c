@@ -73,15 +73,19 @@ reponse_t * traiterRequest(const requete_t *req)
 			{
 				if (strcmp(req->params, "LISTE_USER") == 0) //Juste la liste des joueurs
 				{
-					sprintf(customMsg, "Voici la liste des joueurs : ");
+					strcat(customMsg, "");
 					for (i=0 ; i<CAPACITE_SERVER ; i++)
 					{
 						if (strcmp(usersDatas[i].username, ""))
 						{ 	
-							sprintf(customMsg, "%s - %s", customMsg, usersDatas[i].username);
+							//sprintf(customMsg, "%s%s:", customMsg, usersDatas[i].username);
+							strcat(customMsg, usersDatas[i].username);
+							strcat(customMsg, ":");
 						}
 					}
 					rep=createReponse(200, customMsg);
+					memset(customMsg, 0, sizeof(customMsg));
+					//~ memset(, 0, sizeof());
 				}
 				else //Une IP particulière
 				{
