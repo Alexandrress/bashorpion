@@ -426,6 +426,7 @@ void playBashorpion(int socket, char * buffer, int playerID)
 	//Pour stocker les coups user
 	char coups[MAX_CHAR] = "";
 	char reponse[50];
+	char temp[50];
 	
 	system("clear");
 	printf("\n\n\n");
@@ -518,7 +519,16 @@ void playBashorpion(int socket, char * buffer, int playerID)
 		//Pour cela on envoie une requête au serveur
 		strcpy(informationJoueur.ipUser, inet_ntoa(clientAdr.sin_addr));
 		printf("Adresse IP : >%s<\n", informationJoueur.ipUser);
-		sprintf(MSG_CLIENT, "101 PUT %s:%s", informationJoueur.username, informationJoueur.ipUser);
+		
+		//Nettoyage mémoire
+		memset(MSG_CLIENT, 0, sizeof(MSG_CLIENT));
+		memset(temp, 0, sizeof(temp));
+		
+		strcat(temp, "101 PUT "); strcat(temp, informationJoueur.username);
+		strcat(temp, ":");
+		strcat(temp, informationJoueur.ipUser);
+		
+		strcat(MSG_CLIENT, temp);
 
 		printf("MSG_CLIENT : %s\n", MSG_CLIENT);
 		

@@ -59,7 +59,8 @@ reponse_t * traiterRequest(const requete_t *req)
 	char ipUser[20];
 	int i/*, j*/, trouve;
 	char customMsg[10000];
-	char saveLeaderboard[1000];
+	char saveLeaderboard[1500];
+	char temp[1500];
 	FILE * fp; //Pointeur sur le fichier json de leaderboard
 	
 	switch(req->noReq)
@@ -122,8 +123,9 @@ reponse_t * traiterRequest(const requete_t *req)
 				//On met à jour le fichier de sauvegarde des scores
 				sprintf(saveLeaderboard, "{\"users\": [\n\t");
 				for (i=0 ; strcmp(leaderBoard[i].username, ""); i++){
-					sprintf(saveLeaderboard, "%s{ \"ip\": \"%s\", \"pseudo\": \"%s\", \"score\": \"%d\" },\n\t"
-									, saveLeaderboard, leaderBoard[i].ipUser, leaderBoard[i].username, leaderBoard[i].nbVictoires);
+					sprintf(temp, "{ \"ip\": \"%s\", \"pseudo\": \"%s\", \"score\": \"%d\" },\n\t"
+									, leaderBoard[i].ipUser, leaderBoard[i].username, leaderBoard[i].nbVictoires);
+					strcat(saveLeaderboard, temp);
 				}
 				sprintf(saveLeaderboard, "%s]}", saveLeaderboard);
 				system("rm ./datas/leaderBoard.json ; touch ./leaderBoard.json");
@@ -151,12 +153,13 @@ reponse_t * traiterRequest(const requete_t *req)
 			break;
 			
 		case 101:
+			pthread_mutex_lock(&mutexServeur); //On lock la ressource serveur
 			if(strcmp(req->action, "PUT") == 0){
 				//Demande de mise à jour du tableau des scores
 				
 				//On commence par récupérer les informations dans la chaine de paramètres
 				printf("params : %s", req->params);
-				strcpy(userName, strtok(req->params, ":"));
+				strcpy(userName, strtok((char * restrict)req->params, ":"));
 				strcpy(ipUser, strtok(NULL, ":"));
 				//sscanf(req->params, "%s;%s", , );
 				printf("Info récupérées : username=>%s< ; ipUser=>%s<", userName, ipUser);
@@ -178,7 +181,9 @@ reponse_t * traiterRequest(const requete_t *req)
 					leaderBoard[i].nbVictoires=1;
 					strcpy(leaderBoard[i].ipUser,"127.0.0.1");
 				}
+				rep=createReponse(208,"Oui je t'ai ajouté au leaderboard");
 			}
+			pthread_mutex_unlock(&mutexServeur); //On libère la ressource serveur
 		break;
 			
 		case 200: //Peer-to-peer
