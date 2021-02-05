@@ -1,4 +1,4 @@
--Pré-requis : <br>
+- Pré-requis : <br>
 
 Afin de compiler l'application, vous aurez besoin de la librairie de manipulation d'objets Json. <br>
 . Pour cela, exécuter dans votre terminal la commande : "sudo apt install libjson-c-dev". <br>
