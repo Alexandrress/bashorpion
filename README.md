@@ -9,12 +9,13 @@ la commande "make clean". <br><br>
 
 . Exécuter le serveur avec la commande ./BashorpionServer.exe <br>
 . Exécuter ensuite un client avec la commande ./BashorpionClient.exe <br>
-. Veuillez rentrer un port 60001 pour le client qui se fera défié.<br>
+. Veuillez rentrer un port 60001 pour le client qui se fera défier.<br>
 . Veuillez rentrer l'adresse du serveur Bashorpion càd 127.0.0.1 en local.<br>
 . Veuillez entrer un username, par exemple "Alexandre" ou "Nicolas". <br>
 . Vous pouvez ensuite utiliser les commandes "lobby de jeu" suivantes : <br>
 &nbsp;&nbsp;&nbsp;&nbsp;"list" (Permet de visualiser les joueurs connectés au lobby) <br>
-&nbsp;&nbsp;&nbsp;&nbsp;"exit" (Permet de terminer la connection au lobby de jeu) <br>
+&nbsp;&nbsp;&nbsp;&nbsp;"leaderboard" (Permet de visualiser la liste des utilisateurs ayant joué des parties, ainsi que leurs scores) <br>
+&nbsp;&nbsp;&nbsp;&nbsp;"leave" (Permet de terminer la connection au lobby de jeu) <br>
 &nbsp;&nbsp;&nbsp;&nbsp;"battle <nomDuJoueur>" (Permet de défier un autre joueur) <br>
 &nbsp;&nbsp;&nbsp;&nbsp;"accept" (Permet de relever un défi si vous avez été défié au préalable) <br>
 &nbsp;&nbsp;&nbsp;&nbsp;"deny" (Permet de refuser un défi si vous avez été défié au préalable) <br>
