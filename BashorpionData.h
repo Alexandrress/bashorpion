@@ -3,8 +3,9 @@
  * \brief Fichier "BashorpionData.h" contenant les prototypes des fonctions de 
  serialisation. Concerne la couche 6 du modèle OSI (Presentation).
  * \author Alexandre.L & Nicolas.S
- * \version 3.0
- * \date 21 Janvier 2021
+
+ * \version 5.0
+ * \date 05 Février 2021
 */
 
 #ifndef _DATA_H_

@@ -4,8 +4,8 @@
  de génération de requêtes/réponses et de traitements. Concerne la couche 7 du modèle 
  OSI (Application).
  * \author Alexandre.L & Nicolas.S
- * \version 4.0
- * \date 25 Janvier 2021
+ * \version 5.0
+ * \date 05 Février 2021
 */
 
 
@@ -57,11 +57,12 @@ reponse_t * traiterRequest(const requete_t *req)
 	char buffer[MAX_CHAR];
 	char userName[50];
 	char ipUser[20];
-	int i/*, j*/, trouve;
+	int i, trouve;
 	char customMsg[10000];
 	char saveLeaderboard[1500];
 	char temp[1500];
 	FILE * fp; //Pointeur sur le fichier json de leaderboard
+
 	
 	switch(req->noReq)
 	{
@@ -74,17 +75,18 @@ reponse_t * traiterRequest(const requete_t *req)
 				if (strcmp(req->params, "LISTE_USER") == 0) //Juste la liste des joueurs
 				{
 					strcat(customMsg, "");
+
 					for (i=0 ; i<CAPACITE_SERVER ; i++)
 					{
 						if (strcmp(usersDatas[i].username, ""))
 						{ 	
-							//sprintf(customMsg, "%s%s:", customMsg, usersDatas[i].username);
 							strcat(customMsg, usersDatas[i].username);
 							strcat(customMsg, ":");
 						}
 					}
 					rep=createReponse(200, customMsg);
 					memset(customMsg, 0, sizeof(customMsg));
+
 				}
 				else //Une IP particulière
 				{
@@ -101,6 +103,7 @@ reponse_t * traiterRequest(const requete_t *req)
 							rep=createReponse(404,"NOT FOUND");
 					}
 				}
+        
 				if (strcmp(req->params, "LEADERBOARD") == 0) //Le leaderboard
 				{
 					
@@ -123,7 +126,6 @@ reponse_t * traiterRequest(const requete_t *req)
 						memset(usersDatas[joueur].username, 0, sizeof(usersDatas[joueur].username));
 					}
 				}
-				
 				//On met à jour le fichier de sauvegarde des scores
 				sprintf(saveLeaderboard, "{\"users\": [\n\t");
 				for (i=0 ; strcmp(leaderBoard[i].username, ""); i++){

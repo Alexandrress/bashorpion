@@ -3,8 +3,8 @@
  * \brief Fichier "BashorpionSession.c" contenant les fonctions de sessions des
  clients et du serveur. Concerne la couche 5 du modèle OSI (Session).
  * \author Alexandre.L & Nicolas.S
- * \version 4.0
- * \date 25 Janvier 2021
+ * \version 5.0
+ * \date 05 Février 2021
  *
 */
 
@@ -210,7 +210,6 @@ void receiveClientToClient(int socketDialogue)
 	reqClient = stringToReq(buff); //On transforme le string en requête pour traiter
 	traiterRequest(reqClient); //On traite la requête
 }
-
 
 /**
  * \fn int sendRequete(const int sock, const requete_t *req);

@@ -2,8 +2,8 @@
  * \file BashorpionClient.c
  * \brief Programme permettant de lancer un client du projet Bashorpion.
  * \author Alexandre.L & Nicolas.S
- * \version 4.0
- * \date 25 Janvier 2021
+ * \version 5.0
+ * \date 05 Février 2021
  *
 */
 
@@ -183,6 +183,7 @@ void threadComServeur()
 		fgets(buffer, sizeof(buffer), stdin);
 		buffer[strlen(buffer)-1] = '\0';		
 		char cmd[MAX_CHAR], arg[MAX_CHAR];
+    
 		char affichage[20];
 		numberOfParams=sscanf(buffer, "%s %s", cmd, arg);
 		char * PtrCh;
@@ -259,6 +260,7 @@ void threadComServeur()
 			memset(&reponse, 0, sizeof(reponse));
 			memset(&buffer, 0, sizeof(buffer));
 			memset(&temp, 0, sizeof(temp));
+
 		}
 		
 		// Permet de quitter le serveur et de fermer la socket de dialogue.
@@ -269,6 +271,7 @@ void threadComServeur()
 			reponse=dialClientToSrv(sockDialogueServeur, MSG_CLIENT);
 			memset(&MSG_CLIENT, 0, MAX_CHAR);
 			memset(&reponse, 0, MAX_CHAR);
+
 			memset(&buffer, 0, sizeof(buffer));
 			
 			printf("\n");
@@ -328,6 +331,7 @@ void threadComServeur()
 			{
 				printf("\n\n");
 				printf("Commandes: \n\n - list\n - battle <nomDuJoueur>\n - leaderboard\n - accept\n - deny\n - leave\n\n");
+
 			}
 		}
 	}
@@ -636,7 +640,6 @@ void playBashorpion(int socket, char * buffer, int playerID)
 	strcpy(buffer,"");
 }
 
-
 /**
  * \fn void intro()
  * \brief Fonction d'affichage qui accueille le client dans le launcher Bashorpion
@@ -645,6 +648,7 @@ void playBashorpion(int socket, char * buffer, int playerID)
 void intro()
 {
 	system("clear");
+
 	printf("\n");
 	printf("###################################################################\n");
 	printf("                                                                   \n");
@@ -661,11 +665,13 @@ void intro()
 void introLobby()
 {
 	system("clear");
+
 	printf("\n");
 	printf("###################################################################\n");
 	printf("Bienvenue dans le lobby Bashorpion!                                \n");
 	printf("###################################################################\n");
 	printf("\n\n");
+
 	printf("Commandes: \n\n - list\n - battle <nomDuJoueur>\n - leaderboard\n - accept\n - deny\n - leave\n\n");
 }
 

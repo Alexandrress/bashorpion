@@ -4,8 +4,8 @@
  de génération de requêtes/réponses et de traitements. Concerne la couche 7 du modèle 
  OSI (Application).
  * \author Alexandre.L & Nicolas.S
- * \version 4.0
- * \date 25 Janvier 2021
+ * \version 5.0
+ * \date 05 Février 2021
 */
 
 
@@ -57,6 +57,7 @@
 #define ADDR_SRV		"127.0.0.1"
 #define CAPACITE_SERVER 10 	//Capacité maximmale du server
 #define MAX_ENREGISTREMENTS 70	//Capacité maximum d'enregistrements disponibles pour le leaderboard (nb max de joueurs différents)
+
 	
 
 
@@ -132,7 +133,6 @@ typedef struct {
 	char username[MAX_CHAR];
 	int nbVictoires;
 } score_t;
-
 
 // ******** VARIABLES GLOBALES ********
 

@@ -8,8 +8,8 @@
  * \file BashorpionServer.c
  * \brief Programme permettant de lancer le serveur d'authentification du projet Bashorpion.
  * \author Alexandre.L & Nicolas.S
- * \version 4.0
- * \date 25 Janvier 2021
+ * \version 5.0
+ * \date 05 Février 2021
  *
 */
 
@@ -42,8 +42,7 @@ void serveur()
 {
 	int sd, i;
 	pthread_t *tab_thread; //tableau de Threads de dialogue
-	
-	
+  
 	//Allocation mémoire pour les threads de dialogue
 	tab_thread = (pthread_t*)malloc(CAPACITE_SERVER*sizeof(pthread_t));
 	
@@ -178,6 +177,7 @@ void * threadLobbyServer(void * socketDialogue)
 
 	//Remplissage de la structure d'infos utilisateurs
 	strcpy(usersDatas[i].ipUser, ipDuJoueur);
+  
 	printf("STOCKE!!\n");
 	strcpy(usersDatas[i].username, userToAdd);
 	
