@@ -126,7 +126,13 @@ typedef struct {
 	message_t result;
 } reponse_t;
 
-
+/**
+ * \struct score_t
+ * \brief Objet de score utilisateur (élément constituant le leaderboard).
+ *
+ * score_t est une structure permettant de stocker Adresse IP, pseudo et nombre de victoires d'un utilisateur.
+ * Le tableau de score_t constitue le leaderboard.
+*/
 
 typedef struct {
 	char ipUser[MAX_CHAR];
