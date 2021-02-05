@@ -1,7 +1,7 @@
 {"users": [
 	{ "ip": "127.0.0.2", "pseudo": "Guillaume", "score": "5" },
 	{ "ip": "127.0.0.5", "pseudo": "Alex", "score": "22" },
-	{ "ip": "127.0.0.8", "pseudo": "Samir", "score": "51" },
+	{ "ip": "127.0.0.8", "pseudo": "Samir", "score": "52" },
 	{ "ip": "127.0.0.9", "pseudo": "Jason", "score": "58" },
 	{ "ip": "127.0.0.1", "pseudo": "Shahp", "score": "20" },
 	]}
