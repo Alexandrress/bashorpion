@@ -3,7 +3,7 @@
  * \brief Fichier "BashorpionSession.c" contenant les fonctions de sessions des
  clients et du serveur. Concerne la couche 5 du modèle OSI (Session).
  * \author Alexandre.L & Nicolas.S
- * \version 5.0
+ * \version 6.0
  * \date 05 Février 2021
  *
 */

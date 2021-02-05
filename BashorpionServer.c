@@ -8,7 +8,7 @@
  * \file BashorpionServer.c
  * \brief Programme permettant de lancer le serveur d'authentification du projet Bashorpion.
  * \author Alexandre.L & Nicolas.S
- * \version 5.0
+ * \version 6.0
  * \date 05 Février 2021
  *
 */
@@ -75,7 +75,8 @@ void serveur()
 }
 
 /**
- * \fn Fonction d'initialisation du serveur, dont la fonction principale, 
+ * \fn void initServer(void)
+ * \brief Fonction d'initialisation du serveur, dont la fonction principale, 
  * 		au démarrage du serveur, est : 
  * 		- d'initialiser le tableau d'infos utilisateurs usersDatas[].
  * 		- De charger en mémoire (dans le tableau de structures leaderBoard[]) les 
@@ -120,7 +121,7 @@ void initServer(void){
 		
 		json_object_object_get_ex(parsed_json, "users", &users);
 		nbJoueurs = json_object_array_length(users);
-		printf("-- Il y a %ld utilisateurs enregistrés\n", nbJoueurs);
+		printf("-- Il y a %ld utilisateurs enregistrés\n\n", nbJoueurs);
 		
 		for (i=0 ; i<(int)nbJoueurs ; i++){
 			user = json_object_array_get_idx(users, i);

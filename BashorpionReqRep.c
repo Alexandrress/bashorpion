@@ -4,7 +4,7 @@
  de génération de requêtes/réponses et de traitements. Concerne la couche 7 du modèle 
  OSI (Application).
  * \author Alexandre.L & Nicolas.S
- * \version 5.0
+ * \version 6.0
  * \date 05 Février 2021
 */
 
@@ -97,6 +97,7 @@ reponse_t * traiterRequest(const requete_t *req)
 							sprintf(customMsg, "%s", usersDatas[i].ipUser);
 							
 							rep=createReponse(200, customMsg);
+							memset(customMsg, 0, sizeof(customMsg));
 							break;
 						}
 						else
@@ -106,7 +107,6 @@ reponse_t * traiterRequest(const requete_t *req)
         
 				if (strcmp(req->params, "LEADERBOARD") == 0) //Le leaderboard
 				{
-					
 					strcat(customMsg, "");
 					for (i=0 ; strcmp(leaderBoard[i].username, ""); i++){
 						strcat(customMsg, leaderBoard[i].username);
@@ -114,6 +114,7 @@ reponse_t * traiterRequest(const requete_t *req)
 						sprintf(customMsg, "%s%d:", customMsg, leaderBoard[i].nbVictoires);
 						printf("%s - %d victoires\n", leaderBoard[i].username, leaderBoard[i].nbVictoires);
 					}
+					printf("\n");
 					rep=createReponse(200, customMsg);
 					memset(customMsg, 0, sizeof(customMsg));
 				}
@@ -134,7 +135,7 @@ reponse_t * traiterRequest(const requete_t *req)
 					strcat(saveLeaderboard, temp);
 				}
 				sprintf(saveLeaderboard, "%s]}", saveLeaderboard);
-				system("rm ./datas/leaderBoard.json ; touch ./leaderBoard.json");
+				system("rm ./datas/leaderBoard.json;");
 				fp = fopen("./datas/leaderBoard.json", "w");
 				if (fp != NULL){
 					fprintf(fp, "%s", saveLeaderboard);
@@ -143,6 +144,7 @@ reponse_t * traiterRequest(const requete_t *req)
 					printf("Noooo\n");
 				}
 				
+				printf("\n");
 				printf("Mise à jour confirmée\n");
 				
 				rep=createReponse(200,"Je t'ai supprimé du lobby.");
@@ -164,11 +166,11 @@ reponse_t * traiterRequest(const requete_t *req)
 				//Demande de mise à jour du tableau des scores
 				
 				//On commence par récupérer les informations dans la chaine de paramètres
-				printf("params : %s", req->params);
+				printf("params : %s\n", req->params);
 				strcpy(userName, strtok((char * restrict)req->params, ":"));
 				strcpy(ipUser, strtok(NULL, ":"));
 				//sscanf(req->params, "%s;%s", , );
-				printf("Info récupérées : username=>%s< ; ipUser=>%s<", userName, ipUser);
+				printf("Info récupérées : username=>%s< ; ipUser=>%s<\n", userName, ipUser);
 				
 				//On parcourt la liste des utilisateurs classés dans le leaderboard
 				//et on incrémentele score du joueur cible
@@ -178,11 +180,11 @@ reponse_t * traiterRequest(const requete_t *req)
 					if (!(strcmp(leaderBoard[i].username, req->params))){
 						trouve=1;
 						leaderBoard[i].nbVictoires++;
-						printf("Je t'ai trouvé, j'incrémente ton score à %d\n", leaderBoard[i].nbVictoires);
+						printf("Je t'ai trouvé, j'incrémente ton score à %d\n\n", leaderBoard[i].nbVictoires);
 					}
 				}
 				if (trouve == 0){
-					printf("Je ne t'ai pas trouvé, tu es nouveau : Je te crée un emplacement!\n");
+					printf("Je ne t'ai pas trouvé, tu es nouveau : Je te crée un emplacement!\n\n");
 					strcpy(leaderBoard[i].username, req->params);
 					leaderBoard[i].nbVictoires=1;
 					strcpy(leaderBoard[i].ipUser,"127.0.0.1");

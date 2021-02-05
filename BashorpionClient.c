@@ -2,7 +2,7 @@
  * \file BashorpionClient.c
  * \brief Programme permettant de lancer un client du projet Bashorpion.
  * \author Alexandre.L & Nicolas.S
- * \version 5.0
+ * \version 6.0
  * \date 05 Février 2021
  *
 */
@@ -196,6 +196,7 @@ void threadComServeur()
 			
 			char * temp = &(reponse[8]);
 			
+			printf("\n");
 			printf("\t\t-----------------  Utilisateurs en ligne  -----------------\n");
 			strcpy(affichage, strtok(temp, ":"));
 			printf("\t\t\t\t\t- %s\n", affichage);
@@ -205,7 +206,7 @@ void threadComServeur()
 				PtrCh=NULL;
 				PtrCh = strtok(NULL, ":");
 				if (PtrCh == NULL) {
-					printf("\t\t---------------------  Fin de la liste  ---------------------\n");
+					printf("\t\t---------------------  Fin de la liste  ---------------------\n\n");
 					break;
 				}else {
 					strcpy(affichage, PtrCh);
@@ -218,6 +219,7 @@ void threadComServeur()
 			memset(&reponse, 0, sizeof(reponse));
 			memset(&temp, 0, sizeof(temp));
 			memset(&buffer, 0, sizeof(buffer));
+			flagInstructions=0;
 		}
 		
 		// Permet d'avoir le leaderboard des joueurs
@@ -228,7 +230,7 @@ void threadComServeur()
 			
 			char * temp = &(reponse[8]);
 			
-			
+			printf("\n");
 			printf("\t\t-----------------  Leaderboard des utilisateurs  -----------------\n");
 			//Affichage du 1er utilisateur
 			strcpy(affichage, strtok(temp, ":"));
@@ -244,7 +246,7 @@ void threadComServeur()
 				PtrCh=NULL;
 				PtrCh = strtok(NULL, ":"); //Prochain element
 				if (PtrCh == NULL) {
-					printf("\t\t-----------------------  Fin du leaderboard  ----------------------\n");
+					printf("\t\t-----------------------  Fin du leaderboard  ----------------------\n\n");
 					break;
 				}else {
 					strcpy(affichage, PtrCh);
@@ -257,6 +259,7 @@ void threadComServeur()
 			}
 			
 			memset(&MSG_CLIENT, 0, sizeof(MSG_CLIENT));
+			memset(&affichage, 0, sizeof(affichage));
 			memset(&reponse, 0, sizeof(reponse));
 			memset(&buffer, 0, sizeof(buffer));
 			memset(&temp, 0, sizeof(temp));
@@ -311,9 +314,9 @@ void threadComServeur()
 				else
 				{
 					sscanf(reponse, "%s %s", code, ipToConnect);
-					pthread_create(&tid, NULL, (void*)threadPeerToPeer, ipToConnect); 
 					memset(&MSG_CLIENT, 0, MAX_CHAR);
 					memset(&reponse, 0, MAX_CHAR);
+					pthread_create(&tid, NULL, (void*)threadPeerToPeer, ipToConnect); 
 					pthread_exit(0);
 				}
 			}
