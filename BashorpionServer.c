@@ -75,6 +75,13 @@ void serveur()
 	CHECK(close(sockINET), "Problème close sock serveur père ");
 }
 
+/**
+ * \fn Fonction d'initialisation du serveur, dont la fonction principale, 
+ * 		au démarrage du serveur, est : 
+ * 		- d'initialiser le tableau d'infos utilisateurs usersDatas[].
+ * 		- De charger en mémoire (dans le tableau de structures leaderBoard[]) les 
+ * 			informations contenues dans le fichier ./datas/leaderBoard.json.
+*/
 
 void initServer(void){
 	
@@ -90,8 +97,6 @@ void initServer(void){
 	struct json_object *user;
 	
 	size_t nbJoueurs;
-	
-	//strcpy(buff1, "aa");
 	
 	//Init struct infoUsers
 	for (i=0 ; i < CAPACITE_SERVER ; i++)

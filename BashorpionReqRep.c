@@ -85,7 +85,6 @@ reponse_t * traiterRequest(const requete_t *req)
 					}
 					rep=createReponse(200, customMsg);
 					memset(customMsg, 0, sizeof(customMsg));
-					//~ memset(, 0, sizeof());
 				}
 				else //Une IP particulière
 				{
@@ -105,20 +104,21 @@ reponse_t * traiterRequest(const requete_t *req)
 				if (strcmp(req->params, "LEADERBOARD") == 0) //Le leaderboard
 				{
 					
-					sprintf(customMsg, "Voici le leaderBoard des joueurs : ");
+					strcat(customMsg, "");
 					for (i=0 ; strcmp(leaderBoard[i].username, ""); i++){
-						sprintf(customMsg, "%s | %s - %d victoires", customMsg, leaderBoard[i].username, leaderBoard[i].nbVictoires);
+						strcat(customMsg, leaderBoard[i].username);
+						strcat(customMsg, ":");
+						sprintf(customMsg, "%s%d:", customMsg, leaderBoard[i].nbVictoires);
 						printf("%s - %d victoires\n", leaderBoard[i].username, leaderBoard[i].nbVictoires);
 					}
 					rep=createReponse(200, customMsg);
+					memset(customMsg, 0, sizeof(customMsg));
 				}
 			}
 			if(strcmp(req->action, "DELETE") == 0)
 			{
-				for(int joueur=0; joueur<CAPACITE_SERVER; joueur++)
-				{
-					if(strcmp(req->params, usersDatas[joueur].username)==0)
-					{
+				for(int joueur=0; joueur<CAPACITE_SERVER; joueur++){
+					if(strcmp(req->params, usersDatas[joueur].username)==0){
 						memset(usersDatas[joueur].ipUser, 0, sizeof(usersDatas[joueur].ipUser));
 						memset(usersDatas[joueur].username, 0, sizeof(usersDatas[joueur].username));
 					}
