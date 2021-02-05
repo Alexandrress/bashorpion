@@ -8,8 +8,8 @@
  * \file BashorpionServer.c
  * \brief Programme permettant de lancer le serveur d'authentification du projet Bashorpion.
  * \author Alexandre.L & Nicolas.S
- * \version 4.0
- * \date 25 Janvier 2021
+ * \version 5.0
+ * \date 05 Février 2021
  *
 */
 
@@ -23,6 +23,7 @@
 void serveur();
 void * threadLobbyServer(void * socketDialogue);
 void printAffichageUsers();
+void initServer(void);
 
 // ******** VARIABLES GLOBALES ********
 
@@ -41,21 +42,17 @@ void serveur()
 {
 	int sd, i;
 	pthread_t *tab_thread; //tableau de Threads de dialogue
-	
+  
 	//Allocation mémoire pour les threads de dialogue
 	tab_thread = (pthread_t*)malloc(CAPACITE_SERVER*sizeof(pthread_t));
 	
 	pthread_mutex_init(&mutexServeur, NULL);
 	
+	initServer();
+	
 	sockINET = sessionSrv(PORT_SRV, CAPACITE_SERVER);
 	
-	//Init struct infoUsers
-	for (i=0 ; i < CAPACITE_SERVER ; i++)
-	{
-		memset(usersDatas[i].ipUser, 0, sizeof(usersDatas[i].ipUser));
-		memset(usersDatas[i].username, 0, sizeof(usersDatas[i].username));
-		usersDatas[i].portIP = 0; //Valeurs pemrettant de considérer le slot comme vide
-	}
+	
 	
 	printf("\n");
 	
@@ -75,6 +72,78 @@ void serveur()
 	}
 	//Fermeture du socket
 	CHECK(close(sockINET), "Problème close sock serveur père ");
+}
+
+/**
+ * \fn Fonction d'initialisation du serveur, dont la fonction principale, 
+ * 		au démarrage du serveur, est : 
+ * 		- d'initialiser le tableau d'infos utilisateurs usersDatas[].
+ * 		- De charger en mémoire (dans le tableau de structures leaderBoard[]) les 
+ * 			informations contenues dans le fichier ./datas/leaderBoard.json.
+*/
+
+void initServer(void){
+	
+	int i;
+	FILE * ficScores;
+	char buffer[1024];
+	
+	struct json_object *parsed_json;
+	struct json_object *ip;
+	struct json_object *pseudo;
+	struct json_object *score;
+	struct json_object *users;
+	struct json_object *user;
+	
+	size_t nbJoueurs;
+	
+	//Init struct infoUsers
+	for (i=0 ; i < CAPACITE_SERVER ; i++)
+	{
+		memset(usersDatas[i].ipUser, 0, sizeof(usersDatas[i].ipUser));
+		memset(usersDatas[i].username, 0, sizeof(usersDatas[i].username));
+		usersDatas[i].portIP = 0; //Valeurs pemrettant de considérer le slot comme vide
+	}
+	
+	//Au démarrage, s'il n'existe pas, le serveur crée le fichier de leaderboard.
+	//Sinon il le charge dans le tableau de structures score_t dédiée : leaderBoard
+	ficScores = fopen("./datas/leaderBoard.json", "rw");
+	if (ficScores != NULL){
+		printf("Fichier accessible --> lecture du fichier\n");
+		
+		fread(buffer, 1024, 1, ficScores);
+		fclose(ficScores);
+		
+		parsed_json = json_tokener_parse(buffer);
+		
+		
+		
+		json_object_object_get_ex(parsed_json, "users", &users);
+		nbJoueurs = json_object_array_length(users);
+		printf("-- Il y a %ld utilisateurs enregistrés\n", nbJoueurs);
+		
+		for (i=0 ; i<(int)nbJoueurs ; i++){
+			user = json_object_array_get_idx(users, i);
+			printf("Utilisateur N°%d : \n", i+1);
+			json_object_object_get_ex(user, "pseudo", &pseudo);
+			json_object_object_get_ex(user, "score", &score);
+			json_object_object_get_ex(user, "ip", &ip);
+			
+			//Chargement dans la structure de sonnées prévue à cet effet
+			strcpy(leaderBoard[i].username, json_object_get_string(pseudo));
+			strcpy(leaderBoard[i].ipUser, json_object_get_string(ip));
+			leaderBoard[i].nbVictoires = json_object_get_int(score);
+			
+			printf("- Pseudo : %s\n- Score : %d\n- Ip : %s\n", leaderBoard[i].username, leaderBoard[i].nbVictoires, leaderBoard[i].ipUser);
+			printf("\n");
+		}
+		
+	}else {
+		printf("Fichier indisponible --> Création du fichier... ");
+		system("touch ./datas/leaderBoard.json");
+		printf("Fichier créé avec succès\n");
+	}
+	
 }
 
 
@@ -108,6 +177,8 @@ void * threadLobbyServer(void * socketDialogue)
 
 	//Remplissage de la structure d'infos utilisateurs
 	strcpy(usersDatas[i].ipUser, ipDuJoueur);
+  
+	printf("STOCKE!!\n");
 	strcpy(usersDatas[i].username, userToAdd);
 	
 	printf("\n");
@@ -163,3 +234,4 @@ int main()
 	
 	return 0;
 }
+

@@ -4,8 +4,8 @@
  de génération de requêtes/réponses et de traitements. Concerne la couche 7 du modèle 
  OSI (Application).
  * \author Alexandre.L & Nicolas.S
- * \version 4.0
- * \date 25 Janvier 2021
+ * \version 5.0
+ * \date 05 Février 2021
 */
 
 
@@ -55,8 +55,14 @@ reponse_t * traiterRequest(const requete_t *req)
 	reponse_t *rep;
 	char cmd[MAX_CHAR];
 	char buffer[MAX_CHAR];
-	int i;
+	char userName[50];
+	char ipUser[20];
+	int i, trouve;
 	char customMsg[10000];
+	char saveLeaderboard[1500];
+	char temp[1500];
+	FILE * fp; //Pointeur sur le fichier json de leaderboard
+
 	
 	switch(req->noReq)
 	{
@@ -68,15 +74,19 @@ reponse_t * traiterRequest(const requete_t *req)
 			{
 				if (strcmp(req->params, "LISTE_USER") == 0) //Juste la liste des joueurs
 				{
-					sprintf(customMsg, "Voici la liste des joueurs : ");
+					strcat(customMsg, "");
+
 					for (i=0 ; i<CAPACITE_SERVER ; i++)
 					{
 						if (strcmp(usersDatas[i].username, ""))
 						{ 	
-							sprintf(customMsg, "%s - %s", customMsg, usersDatas[i].username);
+							strcat(customMsg, usersDatas[i].username);
+							strcat(customMsg, ":");
 						}
 					}
 					rep=createReponse(200, customMsg);
+					memset(customMsg, 0, sizeof(customMsg));
+
 				}
 				else //Une IP particulière
 				{
@@ -93,18 +103,50 @@ reponse_t * traiterRequest(const requete_t *req)
 							rep=createReponse(404,"NOT FOUND");
 					}
 				}
+        
+				if (strcmp(req->params, "LEADERBOARD") == 0) //Le leaderboard
+				{
+					
+					strcat(customMsg, "");
+					for (i=0 ; strcmp(leaderBoard[i].username, ""); i++){
+						strcat(customMsg, leaderBoard[i].username);
+						strcat(customMsg, ":");
+						sprintf(customMsg, "%s%d:", customMsg, leaderBoard[i].nbVictoires);
+						printf("%s - %d victoires\n", leaderBoard[i].username, leaderBoard[i].nbVictoires);
+					}
+					rep=createReponse(200, customMsg);
+					memset(customMsg, 0, sizeof(customMsg));
+				}
 			}
 			if(strcmp(req->action, "DELETE") == 0)
 			{
-				for(int joueur=0; joueur<CAPACITE_SERVER; joueur++)
-				{
-					if(strcmp(req->params, usersDatas[joueur].username)==0)
-					{
+				for(int joueur=0; joueur<CAPACITE_SERVER; joueur++){
+					if(strcmp(req->params, usersDatas[joueur].username)==0){
 						memset(usersDatas[joueur].ipUser, 0, sizeof(usersDatas[joueur].ipUser));
 						memset(usersDatas[joueur].username, 0, sizeof(usersDatas[joueur].username));
 					}
 				}
+				//On met à jour le fichier de sauvegarde des scores
+				sprintf(saveLeaderboard, "{\"users\": [\n\t");
+				for (i=0 ; strcmp(leaderBoard[i].username, ""); i++){
+					sprintf(temp, "{ \"ip\": \"%s\", \"pseudo\": \"%s\", \"score\": \"%d\" },\n\t"
+									, leaderBoard[i].ipUser, leaderBoard[i].username, leaderBoard[i].nbVictoires);
+					strcat(saveLeaderboard, temp);
+				}
+				sprintf(saveLeaderboard, "%s]}", saveLeaderboard);
+				system("rm ./datas/leaderBoard.json ; touch ./leaderBoard.json");
+				fp = fopen("./datas/leaderBoard.json", "w");
+				if (fp != NULL){
+					fprintf(fp, "%s", saveLeaderboard);
+					fclose(fp);
+				}else {
+					printf("Noooo\n");
+				}
+				
+				printf("Mise à jour confirmée\n");
+				
 				rep=createReponse(200,"Je t'ai supprimé du lobby.");
+				
 			}
 			if(strcmp(req->action, "PUT") == 0)
 			{
@@ -115,6 +157,40 @@ reponse_t * traiterRequest(const requete_t *req)
 			pthread_mutex_unlock(&mutexServeur); //On libère la ressource serveur
 			
 			break;
+			
+		case 101:
+			pthread_mutex_lock(&mutexServeur); //On lock la ressource serveur
+			if(strcmp(req->action, "PUT") == 0){
+				//Demande de mise à jour du tableau des scores
+				
+				//On commence par récupérer les informations dans la chaine de paramètres
+				printf("params : %s", req->params);
+				strcpy(userName, strtok((char * restrict)req->params, ":"));
+				strcpy(ipUser, strtok(NULL, ":"));
+				//sscanf(req->params, "%s;%s", , );
+				printf("Info récupérées : username=>%s< ; ipUser=>%s<", userName, ipUser);
+				
+				//On parcourt la liste des utilisateurs classés dans le leaderboard
+				//et on incrémentele score du joueur cible
+				//Si le joueur n'est pas trouvé, on lui crée un emplacement.
+				trouve=0;
+				for (i=0 ; strcmp(leaderBoard[i].username, "") && trouve == 0; i++){
+					if (!(strcmp(leaderBoard[i].username, req->params))){
+						trouve=1;
+						leaderBoard[i].nbVictoires++;
+						printf("Je t'ai trouvé, j'incrémente ton score à %d\n", leaderBoard[i].nbVictoires);
+					}
+				}
+				if (trouve == 0){
+					printf("Je ne t'ai pas trouvé, tu es nouveau : Je te crée un emplacement!\n");
+					strcpy(leaderBoard[i].username, req->params);
+					leaderBoard[i].nbVictoires=1;
+					strcpy(leaderBoard[i].ipUser,"127.0.0.1");
+				}
+				rep=createReponse(208,"Oui je t'ai ajouté au leaderboard");
+			}
+			pthread_mutex_unlock(&mutexServeur); //On libère la ressource serveur
+		break;
 			
 		case 200: //Peer-to-peer
 			if(strcmp(req->action, "BATTLE") == 0)
@@ -202,3 +278,4 @@ char * traiterReponse(const reponse_t *rep)
 	}
 	return reponse;
 }
+

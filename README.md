@@ -53,4 +53,4 @@ la commande "make clean". <br><br>
 
 - Générer la documentation Doxygen : <br>
 
-. Il faut utiliser la commande "doxygen BashorpionServer.c". <br><br>
+. Il faut utiliser la commande "doxygen BashorpionServer.c". <br>

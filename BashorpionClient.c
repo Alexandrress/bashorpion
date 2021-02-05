@@ -2,8 +2,8 @@
  * \file BashorpionClient.c
  * \brief Programme permettant de lancer un client du projet Bashorpion.
  * \author Alexandre.L & Nicolas.S
- * \version 4.0
- * \date 25 Janvier 2021
+ * \version 5.0
+ * \date 05 Février 2021
  *
 */
 
@@ -65,7 +65,7 @@ void client()
 	scanf("%s", serverIP);
 	
 	//On redemande le pseudo tant qu'il n'a pas choisi un autre username que "LISTE_USER"
-	while(strcmp(informationJoueur.username,"LISTE_USER")==0)
+	while(strcmp(informationJoueur.username,"LISTE_USER")==0 || strcmp(informationJoueur.username,"LEADERBOARD")==0)
 	{
 		printf("Entrez votre username pour rejoindre le serveur : ");
 		scanf("%s", informationJoueur.username);
@@ -161,7 +161,6 @@ void threadComServeur()
 	
 	//On se connecte en envoyant nos informations
 	reponse = dialClientToSrv(sockDialogueServeur, MSG_CLIENT);
-	//printf("%s\n",reponse); Message de confirmation d'ajout à la liste du lobby
 	
 	memset(&reponse, 0, MAX_CHAR);
 	memset(&MSG_CLIENT, 0, MAX_CHAR);
@@ -184,7 +183,10 @@ void threadComServeur()
 		fgets(buffer, sizeof(buffer), stdin);
 		buffer[strlen(buffer)-1] = '\0';		
 		char cmd[MAX_CHAR], arg[MAX_CHAR];
+    
+		char affichage[20];
 		numberOfParams=sscanf(buffer, "%s %s", cmd, arg);
+		char * PtrCh;
 		
 		// Permet d'avoir la liste des joueurs.
 		if(strcmp(buffer, "list") == 0)
@@ -193,10 +195,72 @@ void threadComServeur()
 			reponse=dialClientToSrv(sockDialogueServeur, MSG_CLIENT);
 			
 			char * temp = &(reponse[8]);
+			
+			printf("\t\t-----------------  Utilisateurs en ligne  -----------------\n");
+			strcpy(affichage, strtok(temp, ":"));
+			printf("\t\t\t\t\t- %s\n", affichage);
+			while (strcmp(affichage, "")){
+				memset(affichage, 0, sizeof(affichage));
+				//PrtCh permet de tester si le résultat renvoyé par  strTok n'est pas nul avant de l'affecter à affichage
+				PtrCh=NULL;
+				PtrCh = strtok(NULL, ":");
+				if (PtrCh == NULL) {
+					printf("\t\t---------------------  Fin de la liste  ---------------------\n");
+					break;
+				}else {
+					strcpy(affichage, PtrCh);
+					printf("\t\t\t\t\t- %s\n", affichage);
+				}
+			}
+			
+			memset(&MSG_CLIENT, 0, sizeof(MSG_CLIENT));
+			memset(&affichage, 0, sizeof(affichage));
+			memset(&reponse, 0, sizeof(reponse));
+			memset(&temp, 0, sizeof(temp));
+			memset(&buffer, 0, sizeof(buffer));
+		}
+		
+		// Permet d'avoir le leaderboard des joueurs
+		if(strcmp(buffer, "leaderboard") == 0)
+		{	
+			strcpy(MSG_CLIENT,"100 GET LEADERBOARD");
+			reponse=dialClientToSrv(sockDialogueServeur, MSG_CLIENT);
+			
+			char * temp = &(reponse[8]);
+			
+			
+			printf("\t\t-----------------  Leaderboard des utilisateurs  -----------------\n");
+			//Affichage du 1er utilisateur
+			strcpy(affichage, strtok(temp, ":"));
+			printf("\t\t\t\t\t- %s : ", affichage);
+			memset(affichage, 0, sizeof(affichage)); //Reset chaine affichage
+			PtrCh = strtok(NULL, ":"); //Prochain element
+			strcpy(affichage, PtrCh);
+			printf("%s victoire(s)\n", affichage);
+			
+			while (strcmp(affichage, "")){
+				memset(affichage, 0, sizeof(affichage)); //Reset chaine affichage
+				//PrtCh permet de tester si le résultat renvoyé par  strTok n'est pas nul avant de l'affecter à affichage
+				PtrCh=NULL;
+				PtrCh = strtok(NULL, ":"); //Prochain element
+				if (PtrCh == NULL) {
+					printf("\t\t-----------------------  Fin du leaderboard  ----------------------\n");
+					break;
+				}else {
+					strcpy(affichage, PtrCh);
+					printf("\t\t\t\t\t- %s : ", affichage);
+					memset(affichage, 0, sizeof(affichage)); //Reset chaine affichage
+					PtrCh = strtok(NULL, ":"); //Prochain element
+					strcpy(affichage, PtrCh);
+					printf("%s victoire(s)\n", affichage);
+				}
+			}
+			
+			memset(&MSG_CLIENT, 0, sizeof(MSG_CLIENT));
+			memset(&reponse, 0, sizeof(reponse));
+			memset(&buffer, 0, sizeof(buffer));
+			memset(&temp, 0, sizeof(temp));
 
-			printf("%s\n\n",temp);
-			memset(&MSG_CLIENT, 0, MAX_CHAR);
-			memset(&reponse, 0, MAX_CHAR);
 		}
 		
 		// Permet de quitter le serveur et de fermer la socket de dialogue.
@@ -207,6 +271,8 @@ void threadComServeur()
 			reponse=dialClientToSrv(sockDialogueServeur, MSG_CLIENT);
 			memset(&MSG_CLIENT, 0, MAX_CHAR);
 			memset(&reponse, 0, MAX_CHAR);
+
+			memset(&buffer, 0, sizeof(buffer));
 			
 			printf("\n");
 			printf("Aurevoir! Merci d'avoir joué!\n\n");
@@ -251,6 +317,7 @@ void threadComServeur()
 					pthread_exit(0);
 				}
 			}
+			memset(&buffer, 0, sizeof(buffer));
 		}
 		
 		// Si le client oublie les commandes...
@@ -263,7 +330,8 @@ void threadComServeur()
 			else
 			{
 				printf("\n\n");
-				printf("Commandes: \n\n - list\n - battle <nomDuJoueur>\n - accept\n - deny\n - leave\n\n");
+				printf("Commandes: \n\n - list\n - battle <nomDuJoueur>\n - leaderboard\n - accept\n - deny\n - leave\n\n");
+
 			}
 		}
 	}
@@ -297,7 +365,7 @@ void * threadPeerToPeer(char * ip)
 	strcpy(MSG_CLIENT,"200 BATTLE ");
 	strcat(MSG_CLIENT,informationJoueur.username);
 	reponse=dialClientToSrv(sockDialoguePeerToPeer, MSG_CLIENT);
-	//printf("%s > %s\n", opponentName, reponse); Message de refus ou d'acceptation du duel
+	
 	memset(&MSG_CLIENT, 0, MAX_CHAR);
 	memset(&reponse, 0, MAX_CHAR);
 	
@@ -348,6 +416,7 @@ void affichagePlateauDeJeu(const char plateau[3][3])
 {
 	int j,w = 0;
 	
+	system("clear");
 	printf("\n\n");
 	
 	// Affichage plateau
@@ -411,7 +480,10 @@ void playBashorpion(int socket, char * buffer, int playerID)
 	char MSG_CLIENT[MAX_CHAR] = "";
 	//Pour stocker les coups user
 	char coups[MAX_CHAR] = "";
+	char reponse[50];
+	char temp[50];
 	
+	system("clear");
 	printf("\n\n\n");
 	printf("#######################\n");
 	printf("- LE MORPION COMMENCE -\n");
@@ -497,6 +569,23 @@ void playBashorpion(int socket, char * buffer, int playerID)
 		printf("\n");
 		printf("BRAVO CHAMPION! %s TU AS GAGNE!\n", informationJoueur.username);
 		myScore++;
+		
+		//Le score est également mis à jour dans la structure du leaderboard
+		//Pour cela on envoie une requête au serveur
+		strcpy(informationJoueur.ipUser, inet_ntoa(clientAdr.sin_addr));
+		
+		//Nettoyage mémoire
+		memset(MSG_CLIENT, 0, sizeof(MSG_CLIENT));
+		memset(temp, 0, sizeof(temp));
+		
+		strcat(temp, "101 PUT "); strcat(temp, informationJoueur.username);
+		strcat(temp, ":");
+		strcat(temp, informationJoueur.ipUser);
+		
+		strcat(MSG_CLIENT, temp);
+		
+		strcpy(reponse, dialClientToSrv(sockDialogueServeur, MSG_CLIENT));
+		
 	}
 	else
 	{
@@ -551,7 +640,6 @@ void playBashorpion(int socket, char * buffer, int playerID)
 	strcpy(buffer,"");
 }
 
-
 /**
  * \fn void intro()
  * \brief Fonction d'affichage qui accueille le client dans le launcher Bashorpion
@@ -559,6 +647,8 @@ void playBashorpion(int socket, char * buffer, int playerID)
 
 void intro()
 {
+	system("clear");
+
 	printf("\n");
 	printf("###################################################################\n");
 	printf("                                                                   \n");
@@ -574,12 +664,15 @@ void intro()
 */
 void introLobby()
 {
+	system("clear");
+
 	printf("\n");
 	printf("###################################################################\n");
 	printf("Bienvenue dans le lobby Bashorpion!                                \n");
 	printf("###################################################################\n");
 	printf("\n\n");
-	printf("Commandes: \n\n - list\n - battle <nomDuJoueur>\n - accept\n - deny\n - leave\n\n");
+
+	printf("Commandes: \n\n - list\n - battle <nomDuJoueur>\n - leaderboard\n - accept\n - deny\n - leave\n\n");
 }
 
 
@@ -601,3 +694,4 @@ int main()
     
 	return 0;
 }
+
